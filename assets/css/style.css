@@ -392,14 +392,14 @@ a:hover { text-decoration: underline; }
 }
 
 .qty-note {
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 0.8rem;
   line-height: 1.5;
 }
 
 /* ── KaTeX overrides ───────────────────────────────────────────────────────── */
 .katex { font-size: 1.05em; }
-.katex-display { overflow-x: auto; padding: 0.25rem 0; }
+.katex-display { padding: 0.25rem 0; }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
