@@ -1,0 +1,338 @@
+/* ── Cahier d'Électrocinétique ─────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg:          #0f0f0f;
+  --bg-card:     #161616;
+  --bg-hover:    #1e1e1e;
+  --border:      #2a2a2a;
+  --border-hi:   #3d3d3d;
+
+  --text:        #e8e4dc;
+  --text-muted:  #7a7570;
+  --text-dim:    #4a4540;
+
+  --accent:      #c8a96e;   /* warm amber — ink on aged paper */
+  --accent-dim:  #7a6640;
+  --accent-glow: rgba(200, 169, 110, 0.08);
+
+  --layer-0:     #6e9ec8;   /* blue   — foundations */
+  --layer-1:     #8bc87a;   /* green  — Kirchhoff  */
+  --layer-2:     #c87a9e;   /* rose   — components */
+  --layer-3:     #c8a96e;   /* amber  — impedance  */
+  --layer-4:     #9e7ac8;   /* violet — filters    */
+  --layer-5:     #c8706e;   /* red    — op-amps    */
+
+  --font-body:   'Source Serif 4', Georgia, serif;
+  --font-display:'Lora', Georgia, serif;
+  --font-mono:   'JetBrains Mono', 'Courier New', monospace;
+
+  --sidebar-w:   260px;
+  --content-max: 780px;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 17px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.75;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0 2rem;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+#sidebar .logo {
+  padding: 0 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+#sidebar .logo h1 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+#sidebar .logo p {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+#sidebar nav { flex: 1; padding: 0 0.75rem; }
+
+#sidebar nav .section-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  padding: 0 0.75rem;
+  margin: 1.25rem 0 0.4rem;
+}
+
+#sidebar nav a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 300;
+  transition: background 0.15s, color 0.15s;
+  border-left: 2px solid transparent;
+}
+
+#sidebar nav a:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+#sidebar nav a.active {
+  color: var(--text);
+  border-left-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+#sidebar nav a .layer-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* ── Main Content ──────────────────────────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 4rem 3rem 6rem;
+  max-width: calc(var(--sidebar-w) + var(--content-max));
+}
+
+.page-content {
+  max-width: var(--content-max);
+}
+
+/* ── Page Header ───────────────────────────────────────────────────────────── */
+.page-header {
+  margin-bottom: 3.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.layer-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25em 0.7em;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  border: 1px solid currentColor;
+  opacity: 0.7;
+}
+
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.page-header .subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 55ch;
+}
+
+/* ── Typography ────────────────────────────────────────────────────────────── */
+h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 3rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 2rem 0 0.6rem;
+  font-style: italic;
+}
+
+p { margin-bottom: 1rem; max-width: 68ch; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Quantity Definition Box ───────────────────────────────────────────────── */
+.quantity {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+
+.quantity .qty-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.quantity table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.quantity table td {
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  vertical-align: top;
+  color: var(--text-muted);
+}
+
+.quantity table td:first-child {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  width: 7rem;
+}
+
+/* ── Equation Block ────────────────────────────────────────────────────────── */
+.eq {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.eq .eq-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-align: right;
+  margin-top: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* ── Note / Aside ──────────────────────────────────────────────────────────── */
+.note {
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-dim);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  margin: 1.5rem 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.note::before {
+  content: "Note — ";
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+/* ── Diagram Container ─────────────────────────────────────────────────────── */
+.diagram {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.diagram figcaption {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Navigation Footer ─────────────────────────────────────────────────────── */
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.page-nav a {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.15s;
+}
+
+.page-nav a:hover { color: var(--accent); text-decoration: none; }
+
+/* ── KaTeX overrides ───────────────────────────────────────────────────────── */
+.katex { font-size: 1.05em; }
+.katex-display { overflow-x: auto; padding: 0.25rem 0; }
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #sidebar { display: none; }
+  #main { margin-left: 0; padding: 2rem 1.5rem 4rem; }
+}

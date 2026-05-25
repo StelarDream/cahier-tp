@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cahier d'Électrocinétique</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [
+      {left:'$$',right:'$$',display:true},
+      {left:'\\(',right:'\\)',display:false}
+    ]})"></script>
+  <script src="assets/js/sidebar.js"></script>
+  <script src="assets/js/nav.js" defer></script>
+</head>
+<body>
+  <aside id="sidebar"></aside>
+  <script>buildSidebar('')</script>
+
+  <main id="main">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="layer-badge" style="color: var(--accent)">UE 404 · EC 404.1</div>
+        <h1>Cahier d'Électrocinétique</h1>
+        <p class="subtitle">A ground-up theory roadmap — from charge and potential through passive filters and op-amp circuits.</p>
+      </div>
+
+      <h2>How to use this</h2>
+      <p>Each layer is self-contained. Work through them in order the first time; during the exam, jump directly to whatever you need via the sidebar. Every quantity is introduced with its rank, unit, and SI dimension vector. Every law is stated in its full differential form first, then simplified for the circuit context.</p>
+
+      <h2>Layer Map</h2>
+
+      <div style="display:grid; gap:1rem; margin-top:1.5rem;">
+
+        <a href="layers/L0-voltage-current.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-0); border-radius:0 6px 6px 0; padding:1rem 1.25rem; transition: border-color 0.15s, background 0.15s;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-0); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L0</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Voltage &amp; Current</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">What charge, potential, and current actually are. From the Coulomb field to \(U = V_A - V_B\).</div>
+          </div>
+        </a>
+
+        <a href="layers/L1-kirchhoff.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-1); border-radius:0 6px 6px 0; padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-1); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L1</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Kirchhoff Laws</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">KCL and KVL as the complete rules for node/branch analysis. The voltage divider.</div>
+          </div>
+        </a>
+
+        <a href="layers/L2-components.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-2); border-radius:0 6px 6px 0; padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-2); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L2</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Component Laws</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">Constitutive relations for R, C, L in differential form. Why C blocks DC and L blocks HF.</div>
+          </div>
+        </a>
+
+        <a href="layers/L3-impedance.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-3); border-radius:0 6px 6px 0; padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-3); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L3</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Complex Impedance</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">\(\partial_t \to j\omega\). How sinusoidal regime collapses ODEs into algebra. \(Z_C, Z_L, Z_R\).</div>
+          </div>
+        </a>
+
+        <a href="layers/L4-filters.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-4); border-radius:0 6px 6px 0; padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-4); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L4</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Filters &amp; Bode</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">Transfer function \(H(\omega)\), gain, phase, cutoff at \(-3\,\text{dB}\). RC, RL, RLC. Bode diagrams.</div>
+          </div>
+        </a>
+
+        <a href="layers/L5-opamp.html" style="text-decoration:none">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--layer-5); border-radius:0 6px 6px 0; padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--layer-5); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem">L5</div>
+            <div style="font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:0.3rem">Op-Amp Circuits</div>
+            <div style="font-size:0.82rem; color:var(--text-muted)">The two golden rules. Inverting, non-inverting, follower, integrator, differentiator, active filters.</div>
+          </div>
+        </a>
+
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>
