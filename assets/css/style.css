@@ -322,6 +322,81 @@ a:hover { text-decoration: underline; }
 
 .page-nav a:hover { color: var(--accent); text-decoration: none; }
 
+/* ── Quantity Table ────────────────────────────────────────────────────────── */
+.qty-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: auto;
+  font-size: 0.83rem;
+}
+
+.qty-table thead tr {
+  border-bottom: 1px solid var(--border-hi);
+}
+
+.qty-table thead th {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  padding: 0.4rem 1rem 0.4rem 0;
+  text-align: left;
+  font-weight: 400;
+}
+
+.qty-table tbody tr {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  transition: background 0.1s;
+}
+
+.qty-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.qty-table tbody tr:target {
+  background: var(--accent-glow);
+  border-bottom-color: var(--accent-dim);
+}
+
+.qty-table td {
+  padding: 0.55rem 1rem 0.55rem 0;
+  vertical-align: baseline;
+}
+
+.qty-sym {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.qty-name {
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.qty-unit {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.qty-dim {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.qty-note {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* ── KaTeX overrides ───────────────────────────────────────────────────────── */
 .katex { font-size: 1.05em; }
 .katex-display { overflow-x: auto; padding: 0.25rem 0; }
