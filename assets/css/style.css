@@ -30,13 +30,13 @@
   --font-mono:   'JetBrains Mono', 'Courier New', monospace;
 
   --sidebar-w:   260px;
-  --content-max: 780px;
+  --content-max: auto;
 }
 
 /* ── Reset & Base ──────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 17px; scroll-behavior: smooth; }
+html { font-size: 20px; scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
