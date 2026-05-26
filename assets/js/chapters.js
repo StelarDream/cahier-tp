@@ -66,7 +66,8 @@
       setActive(current);
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    var scrollEl = document.getElementById('main') || window;
+    scrollEl.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   }
 
