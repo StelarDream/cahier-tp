@@ -125,6 +125,40 @@ body {
   background: var(--accent-glow);
 }
 
+/* Chapter sub-nav — injected by chapters.js under the active layer link */
+.chapter-nav {
+  margin: 0.1rem 0 0.4rem 0;
+  border-left: 1px solid var(--border);
+  margin-left: 1.5rem;
+  padding-left: 0.1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.chapter-link {
+  display: block;
+  padding: 0.25rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapter-link:hover {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.chapter-link.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
 #sidebar nav a .layer-tag {
   font-family: var(--font-mono);
   font-size: 0.6rem;

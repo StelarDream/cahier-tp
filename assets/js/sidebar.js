@@ -20,7 +20,7 @@ function buildSidebar(root) {
   const html = `
   <div class="logo">
     <h1>Cahier<br>d'Électrocinétique</h1>
-    <p>UE 404 · L2 · 2024–25</p>
+    <p>UE 404 · L2 · 2025–26</p>
   </div>
   <nav>
     <a href="${r}index.html">← Overview</a>

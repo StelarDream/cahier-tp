@@ -14,6 +14,7 @@
     ]})"></script>
   <script src="../assets/js/sidebar.js"></script>
   <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
 </head>
 <body>
   <aside id="sidebar"></aside>
@@ -29,9 +30,13 @@
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 
+      <!-- NOTATION CONVENTIONS ════════════════════════════════════════════════ -->
+      <div class="note" style="margin-bottom:2rem">
+        <strong>Conventions on this page</strong> — Following the leçons: source point is \(P\), observation point is \(M\). Unit vector from \(P\) to \(M\) is \(\vec{u}_{PM} = \overrightarrow{PM}/\|\overrightarrow{PM}\|\). Volume element is \(d\tau\), surface element is \(d\vec{S}\), line element is \(d\vec{l}\,\). Differential operators are written \(\text{div}\), \(\text{rot}\), \(\overrightarrow{\text{grad}}\) (not \(\nabla\cdot\), \(\nabla\times\), \(\nabla\)). Rank superscript: ⁽⁰⁾ scalar, ⁽¹⁾ vector, ⁽²⁾ rank-2 tensor. SI dimensions use M (mass), L (length), T (time), I (current); zero-power factors omitted.
+      </div>
+
       <!-- QUANTITY TABLE ══════════════════════════════════════════════════════ -->
-      <h2>Quantity Reference</h2>
-      <p>Every quantity introduced on this page. Rank superscript: ⁽⁰⁾ scalar, ⁽¹⁾ vector, ⁽²⁾ rank-2 tensor. SI dimensions use base symbols M (mass), L (length), T (time), I (current); zero-power factors are omitted.</p>
+      <h2 id="sec-quantities" data-chapter="Quantities">Quantity Reference</h2>
 
       <div style="overflow-x:auto; margin: 1.5rem 0;">
         <table class="qty-table">
@@ -50,223 +55,371 @@
               <td class="qty-name">Electric charge</td>
               <td class="qty-unit">C (Coulomb)</td>
               <td class="qty-dim">\(\mathsf{T^{1} I^{1}}\)</td>
-              <td class="qty-note">Primitive quantity. Conserved. Quantised in units of \(e = 1.6\times10^{-19}\,\text{C}\).</td>
+              <td class="qty-note">Primitive. Conserved. Quantised: \(q = ne\), \(e \simeq 1.60\times10^{-19}\,\text{C}\). Invariant under change of reference frame.</td>
             </tr>
             <tr id="qty-rho">
               <td class="qty-sym">\(\rho^{(0)} \in \mathbb{R}\)</td>
-              <td class="qty-name">Charge density</td>
+              <td class="qty-name">Volume charge density</td>
               <td class="qty-unit">C·m⁻³</td>
               <td class="qty-dim">\(\mathsf{T^{1} I^{1} L^{-3}}\)</td>
-              <td class="qty-note">Charge per unit volume. Scalar field \(\rho(\mathbf{r},t)\).</td>
+              <td class="qty-note">Charge per unit volume. Scalar field \(\rho(M,t)\). Also: surface density \(\sigma\) [C·m⁻²], linear density \(\lambda\) [C·m⁻¹].</td>
             </tr>
             <tr id="qty-E">
-              <td class="qty-sym">\(\mathbf{E}^{(1)} \in \mathbb{R}^3\)</td>
+              <td class="qty-sym">\(\vec{E}^{(1)} \in \mathbb{R}^3\)</td>
               <td class="qty-name">Electric field</td>
               <td class="qty-unit">V·m⁻¹</td>
               <td class="qty-dim">\(\mathsf{M^{1} L^{1} T^{-3} I^{-1}}\)</td>
-              <td class="qty-note">Force per unit charge on a positive test charge.</td>
+              <td class="qty-note">Force per unit test charge: \(\vec{F} = q_M \vec{E}(M)\). Radial (polar) vector. Undefined at \(r=0\).</td>
+            </tr>
+            <tr id="qty-B">
+              <td class="qty-sym">\(\vec{B}^{(1)} \in \mathbb{R}^3\)</td>
+              <td class="qty-name">Magnetic field</td>
+              <td class="qty-unit">T (Tesla)</td>
+              <td class="qty-dim">\(\mathsf{M^{1} T^{-2} I^{-1}}\)</td>
+              <td class="qty-note">Orthoradial (axial / pseudo-vector). Created by moving charges. Magnetic analogue of \(\vec{E}\).</td>
             </tr>
             <tr id="qty-V">
               <td class="qty-sym">\(V^{(0)} \in \mathbb{R}\)</td>
-              <td class="qty-name">Electric potential</td>
+              <td class="qty-name">Electric potential (scalar)</td>
               <td class="qty-unit">V (Volt)</td>
               <td class="qty-dim">\(\mathsf{M^{1} L^{2} T^{-3} I^{-1}}\)</td>
-              <td class="qty-note">Scalar field from which \(\mathbf{E}\) derives. Defined up to a constant.</td>
+              <td class="qty-note">Defined up to an additive constant (gauge choice). Continuous everywhere, even where \(\vec{E}\) is not. In statics: \(\vec{E} = -\overrightarrow{\text{grad}}\,V\).</td>
+            </tr>
+            <tr id="qty-A">
+              <td class="qty-sym">\(\vec{A}^{(1)} \in \mathbb{R}^3\)</td>
+              <td class="qty-name">Magnetic vector potential</td>
+              <td class="qty-unit">T·m (or Wb·m⁻¹)</td>
+              <td class="qty-dim">\(\mathsf{M^{1} L^{1} T^{-2} I^{-1}}\)</td>
+              <td class="qty-note">Magnetic analogue of \(V\). Always: \(\vec{B} = \text{rot}\,\vec{A}\). Defined up to \(\overrightarrow{\text{grad}}\,f\) (gauge). Coulomb gauge: \(\text{div}\,\vec{A} = 0\).</td>
             </tr>
             <tr id="qty-U">
-              <td class="qty-sym">\(U^{(0)} \in \mathbb{R}\)</td>
+              <td class="qty-sym">\(U_{AB}^{(0)} \in \mathbb{R}\)</td>
               <td class="qty-name">Voltage (potential difference)</td>
               <td class="qty-unit">V (Volt)</td>
               <td class="qty-dim">\(\mathsf{M^{1} L^{2} T^{-3} I^{-1}}\)</td>
-              <td class="qty-note">Difference \(V_A - V_B\). What a voltmeter measures. Unambiguous, unlike \(V\) alone.</td>
+              <td class="qty-note">\(U_{AB} = V_A - V_B\). Gauge-invariant — the additive constant in \(V\) cancels. What a voltmeter measures.</td>
             </tr>
-            <tr id="qty-J">
-              <td class="qty-sym">\(\mathbf{J}^{(1)} \in \mathbb{R}^3\)</td>
-              <td class="qty-name">Current density</td>
+            <tr id="qty-j">
+              <td class="qty-sym">\(\vec{j}^{(1)} \in \mathbb{R}^3\)</td>
+              <td class="qty-name">Volume current density</td>
               <td class="qty-unit">A·m⁻²</td>
               <td class="qty-dim">\(\mathsf{I^{1} L^{-2}}\)</td>
-              <td class="qty-note">Charge flux per unit area per unit time. Vector field.</td>
+              <td class="qty-note">Charge flux per unit area per unit time. Also: surface current density \(\vec{j}_\text{surf}\) [A·m⁻¹].</td>
             </tr>
             <tr id="qty-I">
               <td class="qty-sym">\(I^{(0)} \in \mathbb{R}\)</td>
-              <td class="qty-name">Electric current</td>
+              <td class="qty-name">Electric current (intensity)</td>
               <td class="qty-unit">A (Ampère)</td>
               <td class="qty-dim">\(\mathsf{I^{1}}\)</td>
-              <td class="qty-note">Flux of \(\mathbf{J}\) through a cross-section. Positive in the direction of conventional current.</td>
+              <td class="qty-note">Flux of \(\vec{j}\) through a cross-section: \(I = \iint \vec{j}\cdot d\vec{S}\). Positive in the direction of conventional (positive charge) flow.</td>
             </tr>
-            <tr id="qty-sigma">
+            <tr id="qty-sigma-cond">
               <td class="qty-sym">\(\sigma^{(0)} \in \mathbb{R}\)</td>
               <td class="qty-name">Conductivity (isotropic)</td>
               <td class="qty-unit">S·m⁻¹</td>
               <td class="qty-dim">\(\mathsf{M^{-1} L^{-3} T^{3} I^{2}}\)</td>
-              <td class="qty-note">Scalar in isotropic media. Rank-2 tensor in general: \(\sigma^{(2)} \in \mathbb{R}^{3\times3}\).</td>
+              <td class="qty-note">Scalar for isotropic media. Rank-2 tensor \(\sigma^{(2)} \in \mathbb{R}^{3\times3}\) in general. Appears in local Ohm: \(\vec{j} = \sigma\vec{E}\).</td>
             </tr>
             <tr id="qty-P">
               <td class="qty-sym">\(P^{(0)} \in \mathbb{R}\)</td>
               <td class="qty-name">Power</td>
               <td class="qty-unit">W (Watt)</td>
               <td class="qty-dim">\(\mathsf{M^{1} L^{2} T^{-3}}\)</td>
-              <td class="qty-note">Energy transferred per unit time.</td>
+              <td class="qty-note">Energy per unit time. Local form: \(p = \vec{j}\cdot\vec{E}\) [W·m⁻³]. Circuit form: \(P = UI\).</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- §1 CHARGE ════════════════════════════════════════════════════════════ -->
-      <h2>§1 — Electric Charge</h2>
+      <!-- ELECTROSTATIC / MAGNETOSTATIC ANALOGY ═══════════════════════════════ -->
+      <h2 id="sec-analogy" data-chapter="E ↔ B Analogy">Structural Analogy: Electrostatics ↔ Magnetostatics</h2>
 
-      <p>Charge is the primitive. It is a property of matter, not derived from anything more fundamental at this level. Two flavours exist — positive and negative — and the net charge of an isolated system is conserved at all times.</p>
+      <p>The leçons (formulaire) make this explicit: every electrostatic concept has a magnetostatic mirror image. The analogy is exact in the static regime and breaks in dynamic regimes (where Maxwell's corrections appear). Knowing it halves the number of things to memorise.</p>
 
-      <p>For a continuous distribution, charge is described by the <a href="#qty-rho">charge density</a> \(\rho(\mathbf{r}, t)\), a scalar field giving charge per unit volume at each point in space and time. The total charge in a volume \(\mathcal{V}\) is:</p>
-
-      <div class="eq">
-        $$Q = \iiint_{\mathcal{V}} \rho(\mathbf{r},t)\, dV$$
-        <div class="eq-label">total charge in a volume</div>
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr><th>Electrostatics</th><th>Magnetostatics</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="qty-name">Source: charge \(\rho\,d\tau\)</td><td class="qty-name">Source: current \(\vec{j}\,d\tau\) (moving charge)</td></tr>
+            <tr><td class="qty-name">Field: \(\vec{E}\) — radial, polar vector</td><td class="qty-name">Field: \(\vec{B}\) — orthoradial, axial pseudo-vector</td></tr>
+            <tr><td class="qty-name">Scalar potential \(V\): \(\vec{E} = -\overrightarrow{\text{grad}}\,V\)</td><td class="qty-name">Vector potential \(\vec{A}\): \(\vec{B} = \text{rot}\,\vec{A}\)</td></tr>
+            <tr><td class="qty-name">Constant \(\frac{1}{4\pi\varepsilon_0}\)</td><td class="qty-name">Constant \(\frac{\mu_0}{4\pi}\)</td></tr>
+            <tr><td class="qty-name">Maxwell-Gauss: \(\text{div}\,\vec{E} = \rho/\varepsilon_0\)</td><td class="qty-name">Maxwell flux: \(\text{div}\,\vec{B} = 0\)</td></tr>
+            <tr><td class="qty-name">Maxwell-Faraday (static): \(\text{rot}\,\vec{E} = \vec{0}\)</td><td class="qty-name">Maxwell-Ampère (static): \(\text{rot}\,\vec{B} = \mu_0\vec{j}\)</td></tr>
+            <tr><td class="qty-name">Poisson: \(\Delta V + \rho/\varepsilon_0 = 0\)</td><td class="qty-name">Poisson vecteur: \(\Delta\vec{A} - \mu_0\vec{j} = 0\) (Coulomb gauge)</td></tr>
+          </tbody>
+        </table>
       </div>
-
-      <h3>Conservation — the continuity equation</h3>
-      <p>Charge cannot be created or destroyed. The local statement of this fact is the <em>continuity equation</em>, which links the rate of change of charge density at a point to the divergence of the current density flowing away from it:</p>
-
-      <div class="eq">
-        $$\frac{\partial \rho}{\partial t} + \nabla \cdot \mathbf{J} = 0$$
-        <div class="eq-label">continuity equation — differential form</div>
-      </div>
-
-      <p>Reading this: if \(\rho\) decreases at a point (\(\partial\rho/\partial t < 0\)), charge must be flowing away (\(\nabla\cdot\mathbf{J} > 0\)). Nothing is created or destroyed, only moved. This equation is the deep root of Kirchhoff's current law — we will return to it in <a href="L1-kirchhoff.html">L1</a>.</p>
-
-      <!-- §2 ELECTRIC FIELD ════════════════════════════════════════════════════ -->
-      <h2>§2 — The Electric Field</h2>
-
-      <p>A charge distribution warps the space around it. We describe this warping by the <a href="#qty-E">electric field</a> \(\mathbf{E}(\mathbf{r},t)\): a vector field assigning to each point in space the force per unit charge that a small positive test charge would feel there.</p>
-
-      <div class="eq">
-        $$\mathbf{F} = q\,\mathbf{E}$$
-        <div class="eq-label">force on a charge \(q\) in field \(\mathbf{E}\)</div>
-      </div>
-
-      <p>The field is sourced by charge. Gauss's law states this precisely — in differential form:</p>
-
-      <div class="eq">
-        $$\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}$$
-        <div class="eq-label">Gauss's law — differential form (Maxwell I)</div>
-      </div>
-
-      <p>The divergence \(\nabla\cdot\mathbf{E}\) at a point measures how much field is "spraying outward" from that point. Gauss says this is proportional to the charge density there. Where there is no charge, \(\nabla\cdot\mathbf{E} = 0\) — field lines neither start nor end.</p>
-
-      <p>The equivalent integral form, over a closed surface \(\mathcal{S}\) enclosing charge \(Q_\text{enc}\):</p>
-
-      <div class="eq">
-        $$\oiint_{\mathcal{S}} \mathbf{E} \cdot d\mathbf{S} = \frac{Q_\text{enc}}{\varepsilon_0}$$
-        <div class="eq-label">Gauss's law — integral form</div>
-      </div>
-
-      <p>Here \(d\mathbf{S} = \hat{n}\,dA\) is the outward-pointing area element (a vector). The left side counts how much field passes outward through the surface. The right side says this equals the enclosed charge divided by \(\varepsilon_0\), the permittivity of free space.</p>
-
-      <!-- §3 POTENTIAL ══════════════════════════════════════════════════════════ -->
-      <h2>§3 — Electric Potential</h2>
-
-      <p>In electrostatics — when nothing is changing in time — Faraday's law (Maxwell III) reduces to:</p>
-
-      <div class="eq">
-        $$\nabla \times \mathbf{E} = 0$$
-        <div class="eq-label">electrostatic condition (static limit of Faraday's law)</div>
-      </div>
-
-      <p>A vector field with zero curl is called <em>conservative</em>. A theorem from vector calculus says: any conservative field can be written as the gradient of a scalar field. For \(\mathbf{E}\) we write:</p>
-
-      <div class="eq">
-        $$\mathbf{E} = -\nabla V$$
-        <div class="eq-label">electric field from potential — differential form</div>
-      </div>
-
-      <p>The minus sign is a convention: \(\mathbf{E}\) points in the direction of <em>decreasing</em> \(V\), just as water flows downhill. The <a href="#qty-V">potential</a> \(V(\mathbf{r})\) is a scalar field — one number per point in space, much simpler to work with than the vector field \(\mathbf{E}\).</p>
-
-      <p>The integral form: the potential at point \(A\), measured relative to a reference point \(\mathcal{O}\) where \(V = 0\) by convention, is the work done per unit charge bringing a test charge from \(\mathcal{O}\) to \(A\) against the field:</p>
-
-      <div class="eq">
-        $$V(A) = -\int_{\mathcal{O}}^{A} \mathbf{E} \cdot d\boldsymbol{\ell}$$
-        <div class="eq-label">potential as a line integral — integral form</div>
-      </div>
-
-      <p>Because \(\nabla\times\mathbf{E} = 0\), this integral is path-independent: it does not matter which route you take from \(\mathcal{O}\) to \(A\), you always get the same \(V(A)\). This is what makes potential well-defined.</p>
 
       <div class="note">
-        \(V\) is only defined up to a constant — adding any constant to \(V\) everywhere leaves \(\mathbf{E} = -\nabla V\) unchanged. In circuits, we fix this freedom by choosing a reference point (the <em>masse</em>) and declaring \(V = 0\) there.
+        The analogy breaks in dynamics. \(\vec{B} = \text{rot}\,\vec{A}\) holds <em>always</em>. But \(\vec{E} = -\overrightarrow{\text{grad}}\,V\) only holds in statics — in the general case (CM5): \(\vec{E} = -\overrightarrow{\text{grad}}\,V - \partial\vec{A}/\partial t\). See <a href="#sec-potentials">§5</a>.
       </div>
 
-      <!-- §4 VOLTAGE ═══════════════════════════════════════════════════════════ -->
-      <h2>§4 — Voltage</h2>
+      <!-- §1 CHARGE ════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-charge" data-chapter="§1 Charge">§1 — Electric Charge</h2>
 
-      <p>\(V\) alone is ambiguous because it depends on the choice of reference. The <a href="#qty-U">voltage</a> \(U_{AB}\) between two points \(A\) and \(B\) is not ambiguous — it is the difference of potentials:</p>
+      <p>Charge is the primitive of electromagnetism. It is a property of matter — an extensive quantity characterising the electromagnetic interactions a particle exerts and undergoes (CM2, §1.1). Two signs exist: positive and negative. The net charge of a closed system is conserved under any transformation, and is invariant under change of reference frame.</p>
+
+      <p>At the macroscopic scale, charge is treated as continuous and described by the <a href="#qty-rho">volume charge density</a> \(\rho(M, t)\). The total charge in a volume \(\mathcal{V}\) is:</p>
 
       <div class="eq">
-        $$U_{AB} = V_A - V_B$$
-        <div class="eq-label">voltage as potential difference</div>
+        $$Q = \iiint_{\mathcal{V}} \rho(M,t)\, d\tau$$
+        <div class="eq-label">total charge in a volume — integral form</div>
       </div>
 
-      <p>In integral form, this is the line integral of \(\mathbf{E}\) along any path from \(B\) to \(A\):</p>
+      <h3>Conservation — continuity equation</h3>
+      <p>Charge conservation has a local differential form — the continuity equation — linking the time variation of \(\rho\) at a point to the divergence of the current density \(\vec{j}\) leaving that point:</p>
 
       <div class="eq">
-        $$U_{AB} = V_A - V_B = -\int_{B}^{A} \mathbf{E} \cdot d\boldsymbol{\ell} = \int_{A}^{B} \mathbf{E} \cdot d\boldsymbol{\ell}$$
-        <div class="eq-label">voltage as a line integral — integral form</div>
+        $$\frac{\partial \rho}{\partial t} + \text{div}\,\vec{j} = 0$$
+        <div class="eq-label">continuity equation — local (differential) form</div>
       </div>
 
-      <p>This is what a voltmeter measures: it reports the work done per unit charge moving between its two probes, regardless of the path taken internally. Note the sign convention in the poly: \(U = V_\text{final} - V_\text{initial}\), with the arrow pointing from low to high potential.</p>
-
-      <h3>The mass reference</h3>
-      <p>In a circuit we pick one node, call it the <em>masse</em>, and set \(V = 0\) there. Every other potential in the circuit is then measured relative to this node. The choice is arbitrary — it does not affect any voltage \(U_{AB}\) since the reference cancels in the difference. In the lab it is conventionally the black terminal of the generator.</p>
-
-      <!-- §5 CURRENT ═══════════════════════════════════════════════════════════ -->
-      <h2>§5 — Current Density and Current</h2>
-
-      <p>Charges in a conductor are free to move. When an electric field \(\mathbf{E}\) is present, they drift, and this drift constitutes a current. The fundamental quantity is the <a href="#qty-J">current density</a> \(\mathbf{J}(\mathbf{r},t)\): a vector field giving the charge flux per unit area per unit time at each point.</p>
-
-      <p>The <a href="#qty-I">current</a> \(I\) through a surface \(\mathcal{S}\) is the total charge crossing that surface per unit time:</p>
+      <p>Reading it: if \(\rho\) decreases at a point (\(\partial\rho/\partial t < 0\)), charge is flowing away (\(\text{div}\,\vec{j} > 0\)). Integrating over a volume \(\mathcal{V}\) with boundary \(\partial\mathcal{V}\) and applying Green-Ostrogradski gives the integral form:</p>
 
       <div class="eq">
-        $$I = \iint_{\mathcal{S}} \mathbf{J} \cdot d\mathbf{S}$$
-        <div class="eq-label">current as flux of \(\mathbf{J}\) — integral form</div>
+        $$\frac{dQ}{dt} = -\oiint_{\partial\mathcal{V}} \vec{j} \cdot d\vec{S}$$
+        <div class="eq-label">continuity equation — integral form</div>
       </div>
 
-      <p>For a wire where \(\mathbf{J}\) is uniform across a cross-section of area \(A\), this reduces to \(I = JA\). And since the total charge passing the cross-section is \(q(t)\), we have the time-domain form:</p>
+      <p>This is the direct ancestor of Kirchhoff's current law. In the circuit limit — a node with several branches — it becomes \(\sum_k I_k = 0\). See <a href="L1-kirchhoff.html">L1</a>.</p>
+
+      <div class="note">
+        The continuity equation is not an independent postulate: it follows from taking \(\text{div}\) of Maxwell-Ampère (\(\text{rot}\,\vec{B} = \mu_0\vec{j}\)) and using the identity \(\text{div}(\text{rot}) \equiv 0\). Charge conservation is thus a logical consequence of the Maxwell equations taken together.
+      </div>
+
+      <!-- §2 ELECTRIC FIELD ════════════════════════════════════════════════════ -->
+      <h2 id="sec-efield" data-chapter="§2 Electric Field">§2 — The Electric Field</h2>
+
+      <p>Following Maxwell's approach (CM2, §2.1): rather than action at a distance (Coulomb), a charge at \(P\) creates a field \(\vec{E}(M)\) at every point \(M\) in space, and a second charge at \(M\) interacts locally with this field. The force on a test charge \(q_M\) at \(M\) is:</p>
+
+      <div class="eq">
+        $$\vec{F}_{P \to M} = q_M\, \vec{E}(M) \qquad \Rightarrow \qquad \vec{E}(M) = \frac{\vec{F}_{P\to M}}{q_M}$$
+        <div class="eq-label">electric field as force per unit test charge</div>
+      </div>
+
+      <p>For a point charge \(q\) at \(P\), placing the origin at \(P\) and writing \(r = PM\):</p>
+
+      <div class="eq">
+        $$\vec{E}(M) = \frac{q}{4\pi\varepsilon_0}\,\frac{\vec{u}_{PM}}{r^2} = \frac{q}{4\pi\varepsilon_0 r^2}\,\vec{u}_r$$
+        <div class="eq-label">Coulomb field of a point charge — Biot-Savart analogue for \(\vec{E}\)</div>
+      </div>
+
+      <p>For a continuous 3D distribution of charges, superposition gives:</p>
+
+      <div class="eq">
+        $$\vec{E}(M) = \frac{1}{4\pi\varepsilon_0} \iiint_\tau \frac{\rho(P)}{PM^2}\,\vec{u}_{PM}\, d\tau$$
+        <div class="eq-label">electric field of a volume distribution — integral form</div>
+      </div>
+
+      <h3>Maxwell-Gauss equation</h3>
+      <p>The local form of Gauss's theorem — the first Maxwell equation — states that the divergence of \(\vec{E}\) at any point equals the local charge density divided by \(\varepsilon_0\):</p>
+
+      <div class="eq">
+        $$\text{div}\,\vec{E} = \frac{\rho}{\varepsilon_0}$$
+        <div class="eq-label">Maxwell-Gauss — local (differential) form</div>
+      </div>
+
+      <p>Integrating over a volume and applying Green-Ostrogradski (théorème de Gauss):</p>
+
+      <div class="eq">
+        $$\oiint_{S} \vec{E} \cdot d\vec{S} = \frac{Q_\text{int}}{\varepsilon_0}$$
+        <div class="eq-label">Maxwell-Gauss — integral form (théorème de Gauss)</div>
+      </div>
+
+      <p>Where \(Q_\text{int}\) is the total charge enclosed by the closed surface \(S\). If \(q_P > 0\), field lines diverge outward from \(P\); if \(q_P < 0\), they converge toward \(P\). Intensity decreases as \(1/r^2\); \(\vec{E}\) is undefined at \(r = 0\).</p>
+
+      <!-- §3 MAGNETIC FIELD ════════════════════════════════════════════════════ -->
+      <h2 id="sec-bfield" data-chapter="§3 Magnetic Field">§3 — The Magnetic Field</h2>
+
+      <p>A charge \(dq\) moving with velocity \(\vec{v}\) at \(P\) creates a <a href="#qty-B">magnetic field</a> at \(M\) (postulate of Biot-Savart):</p>
+
+      <div class="eq">
+        $$d\vec{B}(M) = \frac{\mu_0}{4\pi}\,\frac{dq\,\vec{v} \wedge \vec{u}_{PM}}{PM^2}$$
+        <div class="eq-label">Biot-Savart — elementary contribution</div>
+      </div>
+
+      <p>For a 3D current distribution with density \(\vec{j}\):</p>
+
+      <div class="eq">
+        $$\vec{B}(M) = \frac{\mu_0}{4\pi} \iiint_\tau \frac{\vec{j}(P) \wedge \vec{u}_{PM}}{PM^2}\,d\tau$$
+        <div class="eq-label">magnetic field of a volume distribution — integral form</div>
+      </div>
+
+      <p>\(\vec{B}\) is an orthoradial (axial) pseudo-vector — unlike \(\vec{E}\) which is radial. Its field lines are closed on themselves and obey the right-hand screw rule.</p>
+
+      <h3>Maxwell equations for \(\vec{B}\)</h3>
+
+      <div class="eq">
+        $$\text{div}\,\vec{B} = 0 \qquad \Leftrightarrow \qquad \oiint_S \vec{B}\cdot d\vec{S} = 0$$
+        <div class="eq-label">Maxwell flux — local and integral forms (\(\vec{B}\) has no monopole sources)</div>
+      </div>
+
+      <div class="eq">
+        $$\text{rot}\,\vec{B} = \mu_0\,\vec{j} \qquad \Leftrightarrow \qquad \oint_\mathcal{C} \vec{B}\cdot d\vec{l} = \mu_0\, I_\text{enlacé}$$
+        <div class="eq-label">Maxwell-Ampère (static) — local and integral forms (théorème d'Ampère)</div>
+      </div>
+
+      <!-- §4 POTENTIALS ═════════════════════════════════════════════════════════ -->
+      <h2 id="sec-potentials" data-chapter="§4 Potentials">§4 — Scalar and Vector Potentials</h2>
+
+      <h3>Scalar potential \(V\) — electrostatics</h3>
+
+      <p>In the static limit, \(\text{rot}\,\vec{E} = \vec{0}\) (Maxwell-Faraday with \(\partial\vec{B}/\partial t = 0\)). Since \(\text{rot}(\overrightarrow{\text{grad}}\,f) \equiv \vec{0}\) for any scalar \(f\), there exists a scalar field \(V(M)\) such that:</p>
+
+      <div class="eq">
+        $$\vec{E}(M) = -\overrightarrow{\text{grad}}\,V(M) \qquad \Leftrightarrow \qquad dV = -\vec{E}\cdot d\vec{r}$$
+        <div class="eq-label">electric field from scalar potential — static limit only</div>
+      </div>
+
+      <p>\(\vec{E}\) points in the direction of decreasing \(V\). The circulation of \(\vec{E}\) between two points \(A\) and \(B\) — along any path, since \(\vec{E}\) is conservative — gives:</p>
+
+      <div class="eq">
+        $$U_{AB} = V_A - V_B = \int_A^B \vec{E}\cdot d\vec{r}$$
+        <div class="eq-label">voltage as circulation of \(\vec{E}\) — integral form</div>
+      </div>
+
+      <p>For a point charge \(q\) at \(P\), with \(V \to 0\) at infinity:</p>
+
+      <div class="eq">
+        $$V(M) = \frac{q}{4\pi\varepsilon_0\, PM} + \text{cte} \qquad \xrightarrow{\text{3D dist.}} \qquad V(M) = \frac{1}{4\pi\varepsilon_0}\iiint_\tau \frac{\rho(P)}{PM}\,d\tau + \text{cte}$$
+        <div class="eq-label">scalar potential — point charge and volume distribution</div>
+      </div>
+
+      <p>Combining \(\text{div}\,\vec{E} = \rho/\varepsilon_0\) with \(\vec{E} = -\overrightarrow{\text{grad}}\,V\) gives the Poisson equation:</p>
+
+      <div class="eq">
+        $$\Delta V + \frac{\rho}{\varepsilon_0} = 0 \qquad \xrightarrow{\rho=0} \qquad \Delta V = 0\;\text{(Laplace)}$$
+        <div class="eq-label">Poisson equation — relates potential to its sources</div>
+      </div>
+
+      <h3>Vector potential \(\vec{A}\) — magnetostatics and beyond</h3>
+
+      <p>Since \(\text{div}\,\vec{B} = 0\) always (no magnetic monopoles), and \(\text{div}(\text{rot}\,\vec{A}) \equiv 0\), there always exists a <a href="#qty-A">vector potential</a> \(\vec{A}(M)\) such that:</p>
+
+      <div class="eq">
+        $$\vec{B} = \text{rot}\,\vec{A}$$
+        <div class="eq-label">magnetic field from vector potential — valid always, not just in statics</div>
+      </div>
+
+      <p>\(\vec{A}\) is defined up to \(\overrightarrow{\text{grad}}\,f\) for any scalar \(f\) (gauge freedom). To fix this, the Coulomb gauge imposes \(\text{div}\,\vec{A} = 0\).</p>
+
+      <h3>General potentials — dynamic regime (CM5)</h3>
+
+      <p>In dynamic regimes (\(\partial\vec{B}/\partial t \neq 0\)), Maxwell-Faraday gives \(\text{rot}\,\vec{E} = -\partial\vec{B}/\partial t \neq \vec{0}\). Using \(\vec{B} = \text{rot}\,\vec{A}\):</p>
+
+      <div class="eq">
+        $$\text{rot}\!\left(\vec{E} + \frac{\partial\vec{A}}{\partial t}\right) = \vec{0}$$
+        <div class="eq-label">from Maxwell-Faraday in dynamic regime</div>
+      </div>
+
+      <p>Since this curl vanishes, there exists a scalar \(V\) such that the full general relation is:</p>
+
+      <div class="eq">
+        $$\boxed{\vec{E} = -\overrightarrow{\text{grad}}\,V - \frac{\partial\vec{A}}{\partial t}}$$
+        <div class="eq-label">general relation \(\vec{E}\) ↔ potentials — valid always (CM5)</div>
+      </div>
+
+      <div class="note">
+        \(\vec{E} = -\overrightarrow{\text{grad}}\,V\) is only valid when \(\partial\vec{A}/\partial t = 0\), i.e. in the static or quasi-static limit. \(\vec{B} = \text{rot}\,\vec{A}\) has no such restriction. This asymmetry matters: in induction (CM5), a time-varying \(\vec{B}\) creates an \(\vec{E}\) that does not derive from \(V\) alone — which is why KVL breaks in the presence of a varying flux. See <a href="L1-kirchhoff.html">L1</a>.
+      </div>
+
+      <!-- §5 VOLTAGE AND MASSE ══════════════════════════════════════════════════ -->
+      <h2 id="sec-voltage" data-chapter="§5 Voltage & Masse">§5 — Voltage and the Masse Reference</h2>
+
+      <p>\(V\) is defined up to an additive constant — a gauge choice. The <a href="#qty-U">voltage</a> \(U_{AB}\) is gauge-invariant because the constant cancels:</p>
+
+      <div class="eq">
+        $$U_{AB} = V_A - V_B = \int_A^B \vec{E}\cdot d\vec{r}$$
+        <div class="eq-label">voltage — gauge-invariant, path-independent (in statics)</div>
+      </div>
+
+      <p>In a circuit, we fix the gauge by choosing one node as <em>masse</em> (\(V = 0\) there). All other potentials are then unambiguous. In the lab: the masse is conventionally the black terminal of the generator. The oscilloscope ground clip must connect there.</p>
+
+      <!-- §6 CURRENT ═══════════════════════════════════════════════════════════ -->
+      <h2 id="sec-current" data-chapter="§6 Current">§6 — Current Density and Current</h2>
+
+      <p>The <a href="#qty-j">current density</a> \(\vec{j}(M,t)\) is the charge flux per unit area per unit time at \(M\). The <a href="#qty-I">current</a> \(I\) through a surface \(S\) is its flux:</p>
+
+      <div class="eq">
+        $$I = \iint_S \vec{j}\cdot d\vec{S}$$
+        <div class="eq-label">current as flux of \(\vec{j}\) — integral form</div>
+      </div>
+
+      <p>For a wire with uniform \(\vec{j}\) across section \(A\): \(I = jA\). Since \(I = dq/dt\):</p>
 
       <div class="eq">
         $$I = \frac{dq}{dt}$$
-        <div class="eq-label">current as rate of charge flow</div>
+        <div class="eq-label">current as rate of charge flow — circuit form</div>
       </div>
 
-      <h3>Ohm's law — local form</h3>
-      <p>In a conductor, the drift of charge carriers is proportional to the driving field. The local (differential) form of Ohm's law is:</p>
+      <h3>Local Ohm's law</h3>
+      <p>In an isotropic conductor, drift of carriers is proportional to the driving field:</p>
 
       <div class="eq">
-        $$\mathbf{J} = \sigma\, \mathbf{E}$$
-        <div class="eq-label">Ohm's law — differential form</div>
+        $$\vec{j} = \sigma\,\vec{E}$$
+        <div class="eq-label">Ohm's law — local (differential) form</div>
       </div>
 
-      <p>where \(\sigma\) is the <a href="#qty-sigma">conductivity</a> of the material (scalar for isotropic media). This is a material property, not a fundamental law — it holds statistically for metals at normal temperatures. The macroscopic circuit law \(U = RI\) is derived from this in <a href="L2-components.html">L2</a>.</p>
+      <p>This is a material law, not a Maxwell equation. The macroscopic \(U = RI\) is derived from this in <a href="L2-components.html">L2</a>. Conventional current flows in the direction positive charges move (opposite to electron drift).</p>
 
-      <div class="note">
-        The direction of \(\mathbf{J}\) is the direction positive charges move (or equivalently, opposite to electron drift). This is the origin of the conventional current direction convention.
-      </div>
+      <!-- §7 POWER ═════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-power" data-chapter="§7 Power">§7 — Power</h2>
 
-      <!-- §6 POWER ═════════════════════════════════════════════════════════════ -->
-      <h2>§6 — Power</h2>
-
-      <p>The electric field does work on moving charges. The power density — energy transferred per unit volume per unit time — at a point is:</p>
+      <p>The local power density (energy transferred per unit volume per unit time) is:</p>
 
       <div class="eq">
-        $$p = \mathbf{J} \cdot \mathbf{E}$$
-        <div class="eq-label">power density — differential form (W·m⁻³)</div>
+        $$p = \vec{j}\cdot\vec{E}$$
+        <div class="eq-label">power density — local form (W·m⁻³)</div>
       </div>
 
-      <p>Integrating over the volume of a circuit branch gives the total <a href="#qty-P">power</a> delivered to or extracted from that branch. For a two-terminal element carrying current \(I\) under voltage \(U\), this integral collapses to:</p>
+      <p>Integrating over a branch volume collapses to the circuit form for a two-terminal element with current \(I\) and voltage \(U\):</p>
 
       <div class="eq">
-        $$P = U \cdot I$$
+        $$P = U \cdot I \qquad \text{instantaneous: } p(t) = u(t)\,i(t)$$
         <div class="eq-label">power — circuit form</div>
       </div>
 
-      <p>Sign convention follows the generator/receiver choice from the poly: \(P > 0\) means the element absorbs power (receiver); \(P < 0\) means it delivers power (generator). In instantaneous form: \(p(t) = u(t)\,i(t)\).</p>
+      <p>Sign convention (poly): \(P > 0\) — element absorbs power (récepteur); \(P < 0\) — element delivers power (générateur). In AC: \(P = U_\text{eff}\,I_\text{eff}\).</p>
+
+      <!-- LINKS FORWARD ════════════════════════════════════════════════════════ -->
+      <h2 id="sec-links" data-chapter="→ Links forward">What comes next</h2>
+      <p>Every circuit law in this course is a collapsed version of something on this page:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Local / field form</th><th>Circuit collapse</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">\(\partial\rho/\partial t + \text{div}\,\vec{j} = 0\)</td>
+              <td class="qty-name">KCL: \(\sum_k I_k = 0\) at a node</td>
+              <td class="qty-name"><a href="L1-kirchhoff.html">L1</a></td>
+            </tr>
+            <tr>
+              <td class="qty-name">\(\text{rot}\,\vec{E} = \vec{0}\) (static) → \(\oint \vec{E}\cdot d\vec{l} = 0\)</td>
+              <td class="qty-name">KVL: \(\sum_k U_k = 0\) around a loop</td>
+              <td class="qty-name"><a href="L1-kirchhoff.html">L1</a></td>
+            </tr>
+            <tr>
+              <td class="qty-name">\(\vec{j} = \sigma\vec{E}\) (local Ohm)</td>
+              <td class="qty-name">\(U = RI\) (resistor)</td>
+              <td class="qty-name"><a href="L2-components.html">L2</a></td>
+            </tr>
+            <tr>
+              <td class="qty-name">Maxwell-Gauss + charge conservation</td>
+              <td class="qty-name">\(i = C\,du/dt\) (capacitor)</td>
+              <td class="qty-name"><a href="L2-components.html">L2</a></td>
+            </tr>
+            <tr>
+              <td class="qty-name">Maxwell-Faraday + \(\vec{B} = \text{rot}\,\vec{A}\)</td>
+              <td class="qty-name">\(u = L\,di/dt\) (inductor)</td>
+              <td class="qty-name"><a href="L2-components.html">L2</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 
