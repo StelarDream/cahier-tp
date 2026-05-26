@@ -14,6 +14,7 @@
     ]})"></script>
   <script src="../assets/js/sidebar.js"></script>
   <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
 </head>
 <body>
   <aside id="sidebar"></aside>
@@ -28,10 +29,253 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- CONTENT GOES HERE                                                   -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <!-- NOTATION ════════════════════════════════════════════════════════════ -->
+      <div class="note" style="margin-bottom:2rem">
+        <strong>Conventions on this page</strong> — Quantities from <a href="L0-voltage-current.html">L0</a> are used without re-introduction. Sign convention for KCL: currents <em>entering</em> a node count positive. Sign convention for KVL: walk the loop in a chosen direction; a voltage rise is positive, a drop is negative.
+      </div>
+
+      <!-- QUANTITY TABLE ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-quantities" data-chapter="Quantities">Quantity Reference</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>Symbol · rank · domain</th>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>SI dimensions</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="qty-R">
+              <td class="qty-sym">\(R^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Resistance</td>
+              <td class="qty-unit">Ω (Ohm)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-2}}\)</td>
+              <td class="qty-note">Property of a resistor. \(U = RI\). Always positive for passive elements.</td>
+            </tr>
+            <tr id="qty-Req">
+              <td class="qty-sym">\(R_\text{eq}^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Equivalent resistance</td>
+              <td class="qty-unit">Ω (Ohm)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-2}}\)</td>
+              <td class="qty-note">Single resistance replacing a network while preserving the same \(U\)/\(I\) relationship at the terminals.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §1 LUMPED APPROXIMATION ══════════════════════════════════════════════ -->
+      <h2 id="sec-lumped" data-chapter="§1 Lumped Approximation">§1 — The Lumped Circuit Approximation</h2>
+
+      <p>Maxwell's equations govern electromagnetic fields continuously through all of space. Circuit theory is not that — it is a drastically simplified model that replaces fields with scalar voltages and currents. The simplification is valid under one condition: the <em>lumped circuit approximation</em>.</p>
+
+      <p>The condition is that the physical size of the circuit \(L_\text{circuit}\) must be much smaller than the wavelength \(\lambda\) of the signals it carries:</p>
+
+      <div class="eq">
+        $$L_\text{circuit} \ll \lambda = \frac{c}{f}$$
+        <div class="eq-label">lumped approximation condition</div>
+      </div>
+
+      <p>At \(f = 1\,\text{kHz}\): \(\lambda \approx 300\,\text{km}\). A breadboard is invisible to the wave — the approximation is perfect. At \(f = 1\,\text{GHz}\): \(\lambda \approx 30\,\text{cm}\). Your circuit is now comparable to the wavelength and the lumped model breaks down — you need transmission line theory or full field simulation.</p>
+
+      <p>Under this approximation, three things become true:</p>
+      <ul style="margin: 1rem 0 1rem 1.5rem; color: var(--text-muted); font-size:0.92rem; line-height:2;">
+        <li>The potential \(V\) is well-defined at every node (no significant field variation within a component).</li>
+        <li>The current \(I\) entering one terminal of a branch equals the current leaving the other (no charge accumulation inside).</li>
+        <li>Energy is stored only in capacitors and inductors, dissipated only in resistors — not radiated.</li>
+      </ul>
+
+      <div class="note">
+        KVL failing in the presence of a varying magnetic flux is <em>not</em> a failure of the lumped approximation — it is a separate effect. When \(\partial\vec{B}/\partial t \neq 0\) threads a loop, \(\text{rot}\,\vec{E} \neq \vec{0}\) and \(\oint \vec{E}\cdot d\vec{l} \neq 0\). KVL picks up an EMF term: \(\sum_k U_k = -d\Phi/dt\). This is induction (CM5), valid at any scale. See <a href="L0-voltage-current.html#sec-potentials">L0 §4</a>.
+      </div>
+
+      <!-- §2 TOPOLOGY ══════════════════════════════════════════════════════════ -->
+      <h2 id="sec-topology" data-chapter="§2 Topology">§2 — Nodes, Branches, Meshes</h2>
+
+      <p>A circuit is a graph. The vocabulary:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Term</th><th>French</th><th>Definition</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Node</td>
+              <td class="qty-unit">Nœud</td>
+              <td class="qty-note">A point (or region) of equal potential. Three or more branches meet here. KCL applies.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Branch</td>
+              <td class="qty-unit">Branche</td>
+              <td class="qty-note">A two-terminal element (or series of elements) connecting two nodes. Carries one current \(I\), has one voltage \(U\) across it.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Mesh / Loop</td>
+              <td class="qty-unit">Maille</td>
+              <td class="qty-note">A closed path through branches returning to the starting node. KVL applies.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Ground / Masse</td>
+              <td class="qty-unit">Masse</td>
+              <td class="qty-note">The reference node. \(V = 0\) by convention. All other potentials are measured relative to it.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>This is exactly the node/pin model: a node is an equipotential (one scalar \(V\)), a branch is a directed edge (one scalar \(I\), one scalar \(U = V_A - V_B\)). The open problem — how does \(U\) and \(I\) distribute across branches at a node — is answered by KCL and KVL together, which form a linear system. The component laws of <a href="L2-components.html">L2</a> close the system.</p>
+
+      <!-- §3 KCL ═══════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-kcl" data-chapter="§3 KCL">§3 — Kirchhoff's Current Law (KCL)</h2>
+
+      <h3>Root in L0</h3>
+      <p>From the continuity equation (<a href="L0-voltage-current.html#sec-charge">L0 §1</a>): \(\partial\rho/\partial t + \text{div}\,\vec{j} = 0\). In the lumped static regime, charge does not accumulate at a node: \(\partial\rho/\partial t = 0\). Therefore \(\text{div}\,\vec{j} = 0\) at every node, which by Green-Ostrogradski integrates to:</p>
+
+      <div class="eq">
+        $$\oiint_S \vec{j}\cdot d\vec{S} = 0 \quad \Rightarrow \quad \sum_k I_k = 0$$
+        <div class="eq-label">KCL — from field form to circuit form</div>
+      </div>
+
+      <h3>Statement</h3>
+      <p>At any node \(N\), the algebraic sum of all currents is zero:</p>
+
+      <div class="eq">
+        $$\sum_k I_k = 0$$
+        <div class="eq-label">KCL — loi des nœuds</div>
+      </div>
+
+      <p>With the convention that currents <em>entering</em> the node are positive and currents <em>leaving</em> are negative, this is simply: total charge in = total charge out. No charge accumulates.</p>
+
+      <div class="note">
+        The number of independent KCL equations for a circuit with \(n\) nodes is \(n - 1\). The equation for the last node is always a linear combination of the others — it carries no new information.
+      </div>
+
+      <!-- §4 KVL ═══════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-kvl" data-chapter="§4 KVL">§4 — Kirchhoff's Voltage Law (KVL)</h2>
+
+      <h3>Root in L0</h3>
+      <p>From Maxwell-Faraday in the static limit (<a href="L0-voltage-current.html#sec-potentials">L0 §4</a>): \(\text{rot}\,\vec{E} = \vec{0}\), which by Stokes' theorem gives:</p>
+
+      <div class="eq">
+        $$\oint_\mathcal{C} \vec{E}\cdot d\vec{l} = 0$$
+        <div class="eq-label">conservative circulation — integral form of static Faraday</div>
+      </div>
+
+      <p>Since \(U_{AB} = \int_A^B \vec{E}\cdot d\vec{l}\), walking around any closed loop and summing the voltages gives zero:</p>
+
+      <div class="eq">
+        $$\sum_k U_k = 0$$
+        <div class="eq-label">KVL — loi des mailles</div>
+      </div>
+
+      <h3>Statement</h3>
+      <p>Around any closed loop, the algebraic sum of all voltages is zero. Choose a direction of traversal. For each branch: if you traverse it in the direction of the voltage arrow (from \(-\) to \(+\)), add \(+U_k\); if you traverse against it, add \(-U_k\).</p>
+
+      <div class="note">
+        The number of independent KVL equations for a circuit with \(b\) branches and \(n\) nodes is \(b - n + 1\) — the number of independent meshes (cyclomatic number of the graph).
+      </div>
+
+      <h3>Generator and receiver conventions</h3>
+      <p>Two sign conventions define how \(U\) and \(I\) relate for a branch:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Convention</th><th>Relation</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Générateur</td>
+              <td class="qty-unit">\(U > 0,\; I > 0\) same direction</td>
+              <td class="qty-note">Voltage and current arrows point the same way. The element <em>delivers</em> power: \(P = UI > 0\).</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Récepteur</td>
+              <td class="qty-unit">\(U > 0,\; I > 0\) opposite directions</td>
+              <td class="qty-note">Voltage and current arrows oppose. The element <em>absorbs</em> power: \(P = UI > 0\).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §5 VOLTAGE DIVIDER ════════════════════════════════════════════════════ -->
+      <h2 id="sec-divider" data-chapter="§5 Voltage Divider">§5 — The Voltage Divider</h2>
+
+      <p>The single most-used circuit identity in this course. Two impedances \(Z_1\) and \(Z_2\) in series, driven by \(u_e\), with output taken across \(Z_2\):</p>
+
+      <div class="eq">
+        $$\boxed{u_s = \frac{Z_2}{Z_1 + Z_2}\, u_e}$$
+        <div class="eq-label">voltage divider — general form with complex impedances</div>
+      </div>
+
+      <h3>Derivation from KVL + Ohm</h3>
+      <p>KVL around the single mesh: \(u_e = u_1 + u_2\). Since \(Z_1\) and \(Z_2\) carry the same current \(i\) (series), \(u_1 = Z_1 i\) and \(u_2 = Z_2 i\). So \(u_e = (Z_1 + Z_2)\,i\), giving \(i = u_e/(Z_1+Z_2)\). Then:</p>
+
+      <div class="eq">
+        $$u_s = Z_2\, i = \frac{Z_2}{Z_1 + Z_2}\, u_e$$
+        <div class="eq-label">voltage divider — derived</div>
+      </div>
+
+      <div class="note">
+        <strong>Critical condition:</strong> this formula holds only when no current is drawn from the output node — i.e. the current through \(Z_1\) and \(Z_2\) is the same. If a load \(Z_L\) is connected across \(Z_2\), the effective impedance becomes \(Z_2 \| Z_L = Z_2 Z_L/(Z_2+Z_L)\) and the formula changes. This is the loading effect — studied experimentally in TP3-5. The op-amp follower in <a href="L5-opamp.html">L5</a> exists precisely to eliminate it.
+      </div>
+
+      <h3>Why this formula runs the whole course</h3>
+      <p>Every passive filter transfer function is a voltage divider with complex impedances. In <a href="L3-impedance.html">L3</a>, \(Z_C = 1/(jC\omega)\) and \(Z_L = jL\omega\) replace real \(R\)s. The RC low-pass filter is literally:</p>
+
+      <div class="eq">
+        $$H(\omega) = \frac{U_s}{U_e} = \frac{Z_C}{Z_R + Z_C} = \frac{1/jC\omega}{R + 1/jC\omega} = \frac{1}{1 + jRC\omega}$$
+        <div class="eq-label">RC low-pass — voltage divider with \(Z_C\) (preview of L3–L4)</div>
+      </div>
+
+      <!-- §6 SERIES AND PARALLEL ════════════════════════════════════════════════ -->
+      <h2 id="sec-series-parallel" data-chapter="§6 Series & Parallel">§6 — Series and Parallel Combinations</h2>
+
+      <h3>Series — from KVL</h3>
+      <p>Elements in series carry the same current. KVL gives \(u_e = \sum_k u_k = \sum_k R_k\, i\). So the equivalent resistance seen from the terminals is:</p>
+
+      <div class="eq">
+        $$R_\text{eq} = \sum_k R_k = R_1 + R_2 + \cdots$$
+        <div class="eq-label">series combination — KVL derivation</div>
+      </div>
+
+      <h3>Parallel — from KCL</h3>
+      <p>Elements in parallel share the same voltage. KCL gives \(i_e = \sum_k i_k = \sum_k U/R_k = U \sum_k 1/R_k\). So:</p>
+
+      <div class="eq">
+        $$\frac{1}{R_\text{eq}} = \sum_k \frac{1}{R_k} \qquad \Rightarrow \qquad R_\text{eq} = \frac{R_1 R_2}{R_1 + R_2} \;\text{(two resistors)}$$
+        <div class="eq-label">parallel combination — KCL derivation</div>
+      </div>
+
+      <p>Both identities generalise immediately to complex impedances: replace every \(R_k\) with \(Z_k(\omega)\). Series and parallel combinations of capacitors and inductors follow the same algebra — with \(Z_C\) and \(Z_L\) substituted in.</p>
+
+      <!-- LINKS FORWARD ════════════════════════════════════════════════════════ -->
+      <h2 id="sec-links" data-chapter="→ Links forward">What comes next</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>This page establishes</th><th>Used in</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">KCL + KVL as the complete node/branch rules</td>
+              <td class="qty-name"><a href="L2-components.html">L2</a> — every component law is derived by applying KVL to a branch</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Voltage divider \(u_s = Z_2/(Z_1+Z_2)\cdot u_e\)</td>
+              <td class="qty-name"><a href="L3-impedance.html">L3</a>, <a href="L4-filters.html">L4</a> — every \(H(\omega)\) is a voltage divider</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Loading effect — \(i_s \neq 0\) changes \(f_c\)</td>
+              <td class="qty-name"><a href="L5-opamp.html">L5</a> — why the op-amp follower exists</td>
+            </tr>
+            <tr>
+              <td class="qty-name">KVL breaks when \(\partial\vec{B}/\partial t \neq 0\)</td>
+              <td class="qty-name">EM exam — CM5 induction, \(\sum U_k = -d\Phi/dt\)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 

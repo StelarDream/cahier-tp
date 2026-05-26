@@ -40,22 +40,34 @@
     // Inject immediately after the active link
     activeLink.insertAdjacentElement('afterend', nav);
 
-    // Highlight the chapter link whose section is in view
-    const observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          const id = entry.target.getAttribute('id');
-          document.querySelectorAll('.chapter-link').forEach(function (a) {
-            a.classList.toggle(
-              'active',
-              a.getAttribute('href') === '#' + id
-            );
-          });
-        }
-      });
-    }, { rootMargin: '0px 0px -70% 0px', threshold: 0 });
+    // Scroll-spy: highlight the last heading scrolled past the top 30% of the
+    // viewport. When above the first heading, nothing is active.
+    const links = Array.from(nav.querySelectorAll('.chapter-link'));
+    const sections = Array.from(chapterEls).filter(function (el) {
+      return el.getAttribute('id') && el.getAttribute('data-chapter');
+    });
 
-    chapterEls.forEach(function (el) { observer.observe(el); });
+    function setActive(id) {
+      links.forEach(function (a) {
+        a.classList.toggle('active', id !== null && a.getAttribute('href') === '#' + id);
+      });
+    }
+
+    function onScroll() {
+      const threshold = window.innerHeight * 0.3;
+      let current = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].getBoundingClientRect().top <= threshold) {
+          current = sections[i].getAttribute('id');
+        } else {
+          break;
+        }
+      }
+      setActive(current);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   }
 
   // sidebar.js runs synchronously so sidebar is already in the DOM,
