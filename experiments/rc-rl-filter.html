@@ -90,6 +90,10 @@
           Show uncertainty columns
         </label>
         <button class="tool-btn primary" id="btn-save">💾 Save to slot</button>
+        <button class="tool-btn" id="btn-export">↓ CSV</button>
+        <label class="tool-btn" style="cursor:pointer">↑ Import CSV
+          <input type="file" accept=".csv" style="display:none" id="btn-import">
+        </label>
         <button class="tool-btn" id="btn-clear">Clear table</button>
       </div>
 
@@ -131,7 +135,7 @@
 
     // ── Slot manager ─────────────────────────────────────────────────────────
     const sm = SlotManager.create('rc-rl-filter');
-    sm.renderBar('slot-bar-rc');
+    sm.renderBar('slot-bar-rc', { hideCSV: true });
 
     // ── Bode table ────────────────────────────────────────────────────────────
     const bt = BodeTable.create({
@@ -274,6 +278,32 @@
 
     document.getElementById('show-uncert').addEventListener('change', function () {
       bt.setShowUncert(this.checked);
+    });
+
+    document.getElementById('btn-export').addEventListener('click', function () {
+      const csv = sm.rowsToCsv(bt.getRows());
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'rc-rl-filter.csv'; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btn-import').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const rows = sm.csvToRows(e.target.result);
+          if (!rows.length) throw new Error('No valid rows found');
+          bt.setRows(rows);
+          sm.save(rows, getComponents());
+          updateTheory();
+        } catch (err) { alert('Import failed: ' + err.message); }
+      };
+      reader.readAsText(file);
+      this.value = '';
     });
 
     document.getElementById('btn-save').addEventListener('click', function () {

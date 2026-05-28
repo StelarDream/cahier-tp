@@ -157,13 +157,15 @@ const SlotManager = (function () {
 
     let barEl = null;
 
-    function renderBar(containerId) {
+    function renderBar(containerId, opts) {
       barEl = document.getElementById(containerId);
       if (!barEl) return;
+      barEl._smOpts = opts || {};
       _rebuildBar();
     }
 
     function _rebuildBar() {
+      const hideCSV = barEl && barEl._smOpts && barEl._smOpts.hideCSV;
       if (!barEl) return;
       const slots = listSlots();
 
@@ -179,8 +181,10 @@ const SlotManager = (function () {
         <button class="tool-btn" id="_sm_rename">Rename</button>
         <button class="tool-btn" id="_sm_del">Delete</button>
         <span style="flex:1"></span>
+        ${hideCSV ? '' : `
         <button class="tool-btn" id="_sm_export">↓ CSV</button>
         <label class="tool-btn" style="cursor:pointer">↑ Import<input type="file" accept=".csv" style="display:none" id="_sm_import_file"></label>
+        `}
       `;
 
       barEl.querySelector('#_sm_select').addEventListener('change', function () {
@@ -227,12 +231,14 @@ const SlotManager = (function () {
         _rebuildBar();
       });
 
-      barEl.querySelector('#_sm_export').addEventListener('click', () => {
+      const exportBtn = barEl.querySelector('#_sm_export');
+      if (exportBtn) exportBtn.addEventListener('click', () => {
         if (!activeSlot) return alert('No slot selected.');
         exportCsv(activeSlot);
       });
 
-      barEl.querySelector('#_sm_import_file').addEventListener('change', function () {
+      const importFile = barEl.querySelector('#_sm_import_file');
+      if (importFile) importFile.addEventListener('change', function () {
         const file = this.files[0];
         if (!file) return;
         importCsv(file).then(({ name, rows }) => {

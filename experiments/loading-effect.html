@@ -125,6 +125,10 @@
           Show uncertainty columns
         </label>
         <button class="tool-btn primary" id="btn-save-bode">💾 Save</button>
+        <button class="tool-btn" id="btn-export-bode">↓ CSV</button>
+        <label class="tool-btn" style="cursor:pointer">↑ Import CSV
+          <input type="file" accept=".csv" style="display:none" id="btn-import-bode">
+        </label>
         <button class="tool-btn" id="btn-clear-bode">Clear</button>
       </div>
 
@@ -157,10 +161,19 @@
 
     // ── Slot managers ─────────────────────────────────────────────────────────
     const smLoading = SlotManager.create('loading-effect-fcrl');
-    smLoading.renderBar('slot-bar-loading');
+    smLoading.renderBar('slot-bar-loading', { hideCSV: true });
+    // Hide the slot manager's built-in CSV buttons — the toolbar below has
+    // loading-format-aware import/export instead.
+    document.getElementById('slot-bar-loading').querySelectorAll
+      && setTimeout(() => {
+        const bar = document.getElementById('slot-bar-loading');
+        bar.querySelectorAll('#_sm_export, label:has(#_sm_import_file)').forEach(el => {
+          el.style.display = 'none';
+        });
+      }, 0);
 
     const smBode = SlotManager.create('loading-effect-bode');
-    smBode.renderBar('slot-bar-bode');
+    smBode.renderBar('slot-bar-bode', { hideCSV: true });
 
     // ── Tables ────────────────────────────────────────────────────────────────
     const lt = LoadingTable.create({
@@ -315,11 +328,41 @@
         lt.setRows(newRows);
         smLoading.save(newRows, { R: getR(), C: getC() });
         updateConclusionsA();
-      }).catch(err => alert('Import failed: ' + err.message));
+      }).catch(err => {
+        console.error('Loading import error:', err);
+        alert('Import failed: ' + (err.message || err));
+      });
       this.value = '';
     });
     document.getElementById('btn-save-loading').addEventListener('click', () => {
       smLoading.save(lt.getRows(), { R: getR(), C: getC() });
+    });
+    document.getElementById('btn-export-bode').addEventListener('click', () => {
+      const rows = bt.getRows();
+      const sm2 = SlotManager.create('_bode_export_tmp');
+      const csv = sm2.rowsToCsv(rows);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'loading-bode.csv'; a.click();
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById('btn-import-bode').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const sm2 = SlotManager.create('_bode_import_tmp');
+          const rows = sm2.csvToRows(e.target.result);
+          if (!rows.length) throw new Error('No valid rows found');
+          bt.setRows(rows);
+          smBode.save(rows, { R: getR(), C: getC(), RL: getRL() });
+          updateConclusionsB();
+        } catch (err) { alert('Import failed: ' + err.message); }
+      };
+      reader.readAsText(file);
+      this.value = '';
     });
     document.getElementById('btn-save-bode').addEventListener('click', () => {
       smBode.save(bt.getRows(), { R: getR(), C: getC(), RL: getRL() });

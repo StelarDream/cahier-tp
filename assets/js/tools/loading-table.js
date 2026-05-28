@@ -421,8 +421,11 @@ const LoadingTable = (function () {
         const reader = new FileReader();
         reader.onload = e => {
           try {
-            const newRows = csvToRows(e.target.result);
-            if (!newRows.length) throw new Error('No valid rows found');
+            const text = e.target.result;
+            console.log('importCsv raw text:', JSON.stringify(text.slice(0, 200)));
+            const newRows = csvToRows(text);
+            console.log('importCsv parsed rows:', newRows);
+            if (!newRows.length) throw new Error('No valid rows found — check that rl_ohm and fc_hz columns are present');
             resolve(newRows);
           } catch (err) { reject(err); }
         };
