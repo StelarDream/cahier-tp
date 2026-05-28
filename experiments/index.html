@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experiments · Cahier</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/nav.js" defer></script>
+</head>
+<body>
+  <aside id="sidebar"></aside>
+  <script>buildSidebar('../')</script>
+  <main id="main">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="layer-badge" style="color:var(--exp)">EXP</div>
+        <h1>Experiments</h1>
+        <p class="subtitle">Interactive lab notebooks — enter measurements, compute derived quantities, compare to theory. Data saved in LocalStorage; import/export as CSV.</p>
+      </div>
+
+      <div class="note" style="margin-bottom:2rem">
+        Data is stored locally in your browser. Use the <strong>↓ CSV</strong> button on each page to back up your measurements. Use <strong>↑ Import</strong> to restore or load converted TP data. The converter script is at <code>tools/csv-convert.py</code>.
+      </div>
+
+      <div style="display:grid; gap:1rem; margin-top:1.5rem;">
+
+        <a href="rc-rl-filter.html" style="text-decoration:none">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--exp);border-radius:0 6px 6px 0;padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--exp);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem">RC / RL First-Order Filter</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">Bode table, \(g_{dB}\) computation, \(f_c\) finder at \(-3\,\text{dB}\). Compare measured vs theoretical \(f_c = 1/(2\pi RC)\) or \(R/(2\pi L)\).</div>
+          </div>
+        </a>
+
+        <a href="loading-effect.html" style="text-decoration:none">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--exp);border-radius:0 6px 6px 0;padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--exp);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem">Loading Effect</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">Measure \(f_c\) vs \(R_L\). Plot \(f_c(R_L)\) and compare to the theoretical curve. Quantify how load shifts the cutoff frequency.</div>
+          </div>
+        </a>
+
+        <a href="cascaded-filters.html" style="text-decoration:none">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--exp);border-radius:0 6px 6px 0;padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--exp);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem">Cascaded Filters</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">CR-CR (order 2 high-pass) and CR-RC (band-pass). Compare \(-40\,\text{dB/dec}\) slope vs \(-20\,\text{dB/dec}\) for a single stage.</div>
+          </div>
+        </a>
+
+        <a href="rlc-resonance.html" style="text-decoration:none">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--exp);border-radius:0 6px 6px 0;padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--exp);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem">RLC Resonance</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">Determine \(\omega_0 = 1/\sqrt{LC}\), quality factor \(Q\), bandwidth \(\Delta f = f_0/Q\). Observe surtension when \(Q > 1/\sqrt{2}\).</div>
+          </div>
+        </a>
+
+        <a href="active-filter.html" style="text-decoration:none">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--exp);border-radius:0 6px 6px 0;padding:1rem 1.25rem;">
+            <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--exp);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem">Active Filter (Op-Amp)</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">Bode diagram with \(G_v > 1\). Verify \(f_c\) is load-independent. Compare active vs passive filter characteristics.</div>
+          </div>
+        </a>
+
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>

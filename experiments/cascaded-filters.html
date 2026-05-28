@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cascaded Filters · Experiments · Cahier</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[
+      {left:'$$',right:'$$',display:true},
+      {left:'\\(',right:'\\)',display:false}
+    ]})"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
+  <script src="../assets/js/tools/slot-manager.js" defer></script>
+  <script src="../assets/js/tools/bode-table.js" defer></script>
+  <script src="../assets/js/tools/fc-finder.js" defer></script>
+</head>
+<body>
+  <aside id="sidebar"></aside>
+  <script>buildSidebar('../')</script>
+
+  <main id="main">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="layer-badge" style="color:var(--exp)">EXP</div>
+        <h1>Cascaded Filters</h1>
+        <p class="subtitle">Bode diagram for CR-CR (order 2 high-pass) and CR-RC (band-pass). Compare slope and \(f_c\) to single-stage filters.</p>
+      </div>
+
+      <div class="theory-bar">
+        <span class="bar-label">Theory</span>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-second-order">L4 · Second-order</a>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-bode">L4 · Bode</a>
+        <a class="theory-pill" style="color:var(--layer-3)" href="../layers/L3-impedance.html#sec-transfer">L3 · H(ω)</a>
+      </div>
+
+      
+      <h2 id="sec-config" data-chapter="Configuration">Configuration</h2>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+
+      <h2 id="sec-data" data-chapter="Measurement Data">Measurement Data</h2>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+
+      <h2 id="sec-plot" data-chapter="Bode Plot">Bode Plot</h2>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+
+      <h2 id="sec-fc" data-chapter="f_c Finder">f_c Finder</h2>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+
+      <h2 id="sec-conclusions" data-chapter="Conclusions">Conclusions</h2>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+
+
+      <div class="page-nav">
+        <a href="loading-effect.html">← Loading Effect</a>
+        <a href="rlc-resonance.html">→ RLC Resonance</a>
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>

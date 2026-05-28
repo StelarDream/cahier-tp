@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RC / RL Filter · Experiments · Cahier</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[
+      {left:'$$',right:'$$',display:true},
+      {left:'\\(',right:'\\)',display:false}
+    ]})"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
+  <script src="../assets/js/tools/slot-manager.js" defer></script>
+  <script src="../assets/js/tools/bode-table.js" defer></script>
+  <script src="../assets/js/tools/fc-finder.js" defer></script>
+</head>
+<body>
+  <aside id="sidebar"></aside>
+  <script>buildSidebar('../')</script>
+
+  <main id="main">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="layer-badge" style="color:var(--exp)">EXP</div>
+        <h1>RC / RL First-Order Filter</h1>
+        <p class="subtitle">Enter your Bode measurements. The tool computes \(g_{dB}\), finds \(f_c\) at \(-3\,\text{dB}\), and compares to the theoretical value.</p>
+      </div>
+
+      <!-- Theory quick-links -->
+      <div class="theory-bar">
+        <span class="bar-label">Theory</span>
+        <a class="theory-pill" style="color:var(--layer-3)" href="../layers/L3-impedance.html#sec-impedance">L3 · Impedance \(\underline{Z}_C, \underline{Z}_L\)</a>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-first-order">L4 · First-order filters</a>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-bode">L4 · Bode diagram</a>
+        <a class="theory-pill" style="color:var(--layer-1)" href="../layers/L1-kirchhoff.html#sec-divider">L1 · Voltage divider</a>
+      </div>
+
+      <!-- ── Circuit selector ─────────────────────────────────────────────── -->
+      <h2 id="sec-config" data-chapter="Configuration">Circuit Configuration</h2>
+
+      <div style="display:flex; flex-wrap:wrap; gap:1.5rem; margin:1rem 0 2rem;">
+
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">Filter type</label><br>
+          <select id="filter-type" style="margin-top:0.3rem;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text-muted);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.6em;cursor:pointer;">
+            <option value="rc-low">RC low-pass (R series, C output)</option>
+            <option value="rc-high">RC high-pass (C series, R output)</option>
+            <option value="rl-low">RL low-pass (L series, R output)</option>
+            <option value="rl-high">RL high-pass (R series, L output)</option>
+          </select>
+        </div>
+
+        <div id="rc-params">
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
+          <input type="number" id="param-R" value="1000" min="1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+
+        <div id="c-params">
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">C (µF)</label><br>
+          <input type="number" id="param-C" value="1.0" min="0.001" step="0.1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+
+        <div id="l-params" style="display:none">
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">L (mH)</label><br>
+          <input type="number" id="param-L" value="100" min="0.1" step="1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+
+      </div>
+
+      <!-- Theory fc display -->
+      <div id="theory-display" class="note" style="margin-bottom:1.5rem;"></div>
+
+      <!-- ── Slot manager ─────────────────────────────────────────────────── -->
+      <h2 id="sec-data" data-chapter="Measurement Data">Measurement Data</h2>
+
+      <div class="slot-bar" id="slot-bar-rc"></div>
+
+      <div class="tool-toolbar">
+        <label style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          <input type="checkbox" id="show-uncert" checked style="margin-right:0.3rem;">
+          Show uncertainty columns
+        </label>
+        <button class="tool-btn primary" id="btn-save">💾 Save to slot</button>
+        <button class="tool-btn" id="btn-clear">Clear table</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tbl-bode"></table>
+      </div>
+
+      <!-- ── Bode plot ────────────────────────────────────────────────────── -->
+      <h2 id="sec-plot" data-chapter="Bode Plot">Bode Plot</h2>
+
+      <canvas id="canvas-bode" class="widget-canvas" width="700" height="500"
+        role="img" aria-label="Bode plot — gain and phase"></canvas>
+      <div class="widget-caption">Blue/warm-grey: measured \(g_{dB}(f)\). Violet: measured \(\Delta\varphi(f)\). Error bars shown when uncertainty columns are populated.</div>
+
+      <!-- ── f_c finder ────────────────────────────────────────────────────── -->
+      <h2 id="sec-fc" data-chapter="f_c Finder">Cutoff Frequency \(f_c\)</h2>
+
+      <p>The tool finds \(f_c\) where \(g_{dB} = g_{dB,\text{max}} - 3\,\text{dB}\) using cubic polynomial interpolation in \(\log f\) space.</p>
+
+      <div id="fc-finder-rc"></div>
+
+      <!-- ── Conclusions ────────────────────────────────────────────────────── -->
+      <h2 id="sec-conclusions" data-chapter="Conclusions">Conclusions</h2>
+
+      <p style="color:var(--text-muted);font-size:0.9rem;">The conclusions below update automatically from your data.</p>
+
+      <div id="conclusions-box" class="note" style="line-height:2.0;"></div>
+
+      <div class="page-nav">
+        <a href="../index.html">← Overview</a>
+        <a href="loading-effect.html">→ Loading Effect</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+  window.addEventListener('load', function () {
+
+    // ── Slot manager ─────────────────────────────────────────────────────────
+    const sm = SlotManager.create('rc-rl-filter');
+    sm.renderBar('slot-bar-rc');
+
+    // ── Bode table ────────────────────────────────────────────────────────────
+    const bt = BodeTable.create({
+      tableId:  'tbl-bode',
+      canvasId: 'canvas-bode',
+      showUncert: true,
+    });
+
+    sm.onLoad(function (rows, components) {
+      bt.setRows(rows);
+      // Restore component params if saved
+      if (components.R) document.getElementById('param-R').value = components.R;
+      if (components.C) document.getElementById('param-C').value = components.C * 1e6;
+      if (components.L) document.getElementById('param-L').value = components.L * 1e3;
+      updateTheory();
+    });
+
+    // ── f_c finder ────────────────────────────────────────────────────────────
+    const finder = FcFinder.init('fc-finder-rc', bt, { nPoints: 4, searchMode: 'before-max' });
+
+    // ── Theory fc ─────────────────────────────────────────────────────────────
+    function getComponents() {
+      return {
+        R: parseFloat(document.getElementById('param-R').value) || 1000,
+        C: (parseFloat(document.getElementById('param-C').value) || 1) * 1e-6,
+        L: (parseFloat(document.getElementById('param-L').value) || 100) * 1e-3,
+      };
+    }
+
+    function getFilterType() {
+      return document.getElementById('filter-type').value;
+    }
+
+    function computeTheoryFc() {
+      const c = getComponents();
+      const type = getFilterType();
+      if (type.startsWith('rc')) return 1 / (2 * Math.PI * c.R * c.C);
+      if (type.startsWith('rl')) return c.R / (2 * Math.PI * c.L);
+      return null;
+    }
+
+    function fmtFreq(f) {
+      if (!f) return '—';
+      if (f >= 1e3) return (f/1e3).toFixed(3) + ' kHz';
+      return f.toFixed(1) + ' Hz';
+    }
+
+    function updateTheory() {
+      const type = getFilterType();
+      const fc = computeTheoryFc();
+      const c = getComponents();
+
+      // Show/hide component inputs
+      const isRC = type.startsWith('rc');
+      document.getElementById('c-params').style.display = isRC ? '' : 'none';
+      document.getElementById('l-params').style.display = isRC ? 'none' : '';
+
+      const formula = type.startsWith('rc')
+        ? `\\(f_c = \\frac{1}{2\\pi RC} = \\frac{1}{2\\pi \\times ${c.R}\\,\\Omega \\times ${(c.C*1e6).toFixed(1)}\\,\\mu F} = ${fmtFreq(fc)}\\)`
+        : `\\(f_c = \\frac{R}{2\\pi L} = \\frac{${c.R}\\,\\Omega}{2\\pi \\times ${(c.L*1e3).toFixed(0)}\\,mH} = ${fmtFreq(fc)}\\)`;
+
+      const filterName = {
+        'rc-low': 'RC low-pass', 'rc-high': 'RC high-pass',
+        'rl-low': 'RL low-pass', 'rl-high': 'RL high-pass'
+      }[type] || type;
+
+      document.getElementById('theory-display').innerHTML =
+        `<strong>${filterName}</strong> — theoretical cutoff: ${formula}`;
+
+      if (finder) finder.setTheory(fc, 'f_c theory');
+
+      // Re-render KaTeX
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('theory-display'));
+      }
+
+      updateConclusions();
+    }
+
+    function updateConclusions() {
+      const box = document.getElementById('conclusions-box');
+      const fc_theory = computeTheoryFc();
+      const rows = bt.getRows();
+      const validRows = rows.filter(r => r.f && r.ue && r.us);
+      const type = getFilterType();
+
+      if (validRows.length < 3) {
+        box.textContent = 'Enter at least 3 measurement points to generate conclusions.';
+        return;
+      }
+
+      const result = FcFinder.computeFc(rows, 4, 'before-max');
+      const fc_meas = result.fc_low || result.fc_high;
+
+      let html = '';
+
+      if (fc_meas) {
+        const err = fc_theory ? Math.abs(fc_meas - fc_theory) / fc_theory * 100 : null;
+        html += `Measured f_c ≈ <strong>${fmtFreq(fc_meas)}</strong>`;
+        if (fc_theory) {
+          html += ` vs theoretical <strong>${fmtFreq(fc_theory)}</strong>`;
+          html += ` — relative error: <strong>${err ? err.toFixed(1) + '%' : '—'}</strong>.`;
+          if (err && err < 5) html += ' ✓ Good agreement.';
+          else if (err && err < 15) html += ' Acceptable — check component tolerances.';
+          else if (err) html += ' Large discrepancy — verify component values and wiring.';
+        }
+        html += '<br>';
+      }
+
+      const gMax = result.gMax;
+      // For RL filters with R=10kΩ, the passband gain will be < 0 dB because
+      // Ue is measured at GBF output (3Vcc) not at the circuit input.
+      // Only warn if gain is suspiciously low (> 6 dB below 0).
+      if (gMax > -6) {
+        html += `Passband gain ≈ <strong>${gMax.toFixed(1)} dB</strong> — consistent with a passive filter (\(G_v \leq 1\), 0 dB).`;
+      } else {
+        html += `Passband gain ≈ <strong>${gMax.toFixed(1)} dB</strong>. `;
+        const type = getFilterType();
+        if (type.startsWith('rl')) {
+          html += `For an RL filter with large R, the GBF source impedance causes a voltage divider effect — the passband gain being below 0 dB is expected.`;
+        } else {
+          html += `Passive filters should have \\(G_v \\leq 1\\) (0 dB). If gain is significantly below 0 dB in the passband, verify component values and that \\(U_e\\) is measured at the circuit input, not the GBF output directly.`;
+        }
+      }
+
+      box.innerHTML = html;
+      if (window.renderMathInElement) renderMathInElement(box);
+    }
+
+    // ── Wire controls ─────────────────────────────────────────────────────────
+
+    ['filter-type', 'param-R', 'param-C', 'param-L'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', updateTheory);
+      if (el) el.addEventListener('input', updateTheory);
+    });
+
+    document.getElementById('show-uncert').addEventListener('change', function () {
+      bt.setShowUncert(this.checked);
+    });
+
+    document.getElementById('btn-save').addEventListener('click', function () {
+      const c = getComponents();
+      sm.save(bt.getRows(), c);
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', function () {
+      if (confirm('Clear all rows?')) bt.setRows([]);
+    });
+
+    bt.onchange(updateConclusions);
+
+    updateTheory();
+  });
+  </script>
+</body>
+</html>

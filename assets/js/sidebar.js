@@ -11,10 +11,24 @@ function buildSidebar(root) {
     { id: 'L5', title: 'Op-Amp Circuits',      file: 'L5-opamp.html',            color: 'var(--layer-5)' },
   ];
 
-  const navItems = layers.map(l => `
+  const experiments = [
+    { title: 'RC / RL Filter',     file: 'rc-rl-filter.html' },
+    { title: 'Loading Effect',      file: 'loading-effect.html' },
+    { title: 'Cascaded Filters',    file: 'cascaded-filters.html' },
+    { title: 'RLC Resonance',       file: 'rlc-resonance.html' },
+    { title: 'Active Filter',       file: 'active-filter.html' },
+  ];
+
+  const layerItems = layers.map(l => `
     <a href="${r}layers/${l.file}">
-      <span class="layer-tag" style="background:${l.color}22; color:${l.color}; border:1px solid ${l.color}44">${l.id}</span>
+      <span class="layer-tag" style="background:${l.color}22;color:${l.color};border:1px solid ${l.color}44">${l.id}</span>
       ${l.title}
+    </a>`).join('');
+
+  const expItems = experiments.map(e => `
+    <a href="${r}experiments/${e.file}">
+      <span class="layer-tag" style="background:var(--exp-glow);color:var(--exp);border:1px solid var(--exp-dim)">EXP</span>
+      ${e.title}
     </a>`).join('');
 
   const html = `
@@ -25,7 +39,9 @@ function buildSidebar(root) {
   <nav>
     <a href="${r}index.html">← Overview</a>
     <div class="section-label">Theory Layers</div>
-    ${navItems}
+    ${layerItems}
+    <div class="section-label">Experiments</div>
+    ${expItems}
   </nav>`;
 
   const sidebar = document.getElementById('sidebar');
