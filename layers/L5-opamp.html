@@ -14,6 +14,13 @@
     ]})"></script>
   <script src="../assets/js/sidebar.js"></script>
   <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
+  <script src="../assets/js/widgets/opamp.js" defer></script>
+  <script defer>
+    window.addEventListener('load', function () {
+      OpampWidget.init('canvas-opamp');
+    });
+  </script>
 </head>
 <body>
   <aside id="sidebar"></aside>
@@ -23,15 +30,392 @@
 
       <div class="page-header">
         <div class="layer-badge" style="color:var(--layer-5)">L5</div>
-        <h1>L5 · Op-Amp Circuits</h1>
+        <h1>Op-Amp Circuits</h1>
         <p class="subtitle">The two golden rules. Inverting, non-inverting, follower, integrator, differentiator, active filters.</p>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- CONTENT GOES HERE                                                   -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="note" style="margin-bottom:2rem">
+        <strong>Conventions on this page</strong> — Op-amp assumed ideal unless stated otherwise. \(V(E^+)\) and \(V(E^-)\) are the potentials at the non-inverting and inverting inputs respectively. \(\varepsilon = V(E^+) - V(E^-)\). Supply voltage \(\pm U_{cc}\). All circuits use the récepteur convention for R, C. Phasor/impedance notation from <a href="L3-impedance.html">L3</a> used in active filter sections.
+      </div>
+
+      <!-- QUANTITY TABLE ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-quantities" data-chapter="Quantities">Quantity Reference</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>Symbol · rank · domain</th>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>SI dimensions</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="qty-Ad">
+              <td class="qty-sym">\(A_d^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Open-loop differential gain</td>
+              <td class="qty-unit">dimensionless</td>
+              <td class="qty-dim">—</td>
+              <td class="qty-note">Intrinsic property of the op-amp. Ideal: \(A_d \to \infty\). Real: \(10^5\)–\(10^6\). \(U_s = A_d \cdot \varepsilon\).</td>
+            </tr>
+            <tr id="qty-eps">
+              <td class="qty-sym">\(\varepsilon^{(0)} \in \mathbb{R}\)</td>
+              <td class="qty-name">Differential input voltage</td>
+              <td class="qty-unit">V (Volt)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-1}}\)</td>
+              <td class="qty-note">\(\varepsilon = V(E^+) - V(E^-)\). In linear regime with ideal op-amp: \(\varepsilon = 0\).</td>
+            </tr>
+            <tr id="qty-Ucc">
+              <td class="qty-sym">\(U_{cc}^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Supply voltage</td>
+              <td class="qty-unit">V (Volt)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-1}}\)</td>
+              <td class="qty-note">Symmetric supply \(\pm U_{cc}\). In TP: \(\pm 15\,\text{V}\). Op-amp output bounded: \(-U_{cc} < U_s < +U_{cc}\).</td>
+            </tr>
+            <tr id="qty-Usat">
+              <td class="qty-sym">\(U_{sat}^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Saturation voltage</td>
+              <td class="qty-unit">V (Volt)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-1}}\)</td>
+              <td class="qty-note">Real op-amp: \(U_{sat} \lesssim U_{cc}\) (typically \(U_{cc} - 1\,\text{to}\,2\,\text{V}\)). Ideal: \(U_{sat} = U_{cc}\).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §1 THE OP-AMP ════════════════════════════════════════════════════════ -->
+      <h2 id="sec-opamp" data-chapter="§1 The Op-Amp">§1 — The Op-Amp as a Component</h2>
+
+      <p>The operational amplifier (AOp, ALI) is an active component: it requires an external power supply \(\pm U_{cc}\) to function. It has two signal inputs — non-inverting \((E^+)\) and inverting \((E^-)\) — and one output \(S\).</p>
+
+      <h3>Ideal model</h3>
+      <p>For all calculations in this course, the op-amp is assumed ideal:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Property</th><th>Ideal value</th><th>Physical meaning</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Input impedance \(Z(E^\pm)\)</td>
+              <td class="qty-unit">\(\infty\)</td>
+              <td class="qty-note">No current flows into either input: \(i(E^+) = i(E^-) = 0\).</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Output impedance \(Z_s\)</td>
+              <td class="qty-unit">\(0\)</td>
+              <td class="qty-note">Output can drive any load without voltage drop. \(U_s\) is independent of \(i_s\).</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Open-loop gain \(A_d\)</td>
+              <td class="qty-unit">\(\infty\)</td>
+              <td class="qty-note">\(U_s = A_d \cdot \varepsilon\). With \(A_d \to \infty\) and \(U_s\) finite: \(\varepsilon \to 0\) in linear regime.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Two operating modes</h3>
+      <p>Once powered, the op-amp operates in one of two modes depending on whether negative feedback is present:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Mode</th><th>Condition</th><th>Output</th><th>Rule 1 applies?</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Saturated</td>
+              <td class="qty-note">Open loop — no feedback from \(S\) to \(E^-\)</td>
+              <td class="qty-note">\(U_s = +U_{cc}\) if \(\varepsilon > 0\); \(U_s = -U_{cc}\) if \(\varepsilon < 0\)</td>
+              <td class="qty-note">No — \(\varepsilon \neq 0\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Linear</td>
+              <td class="qty-note">Closed loop — negative feedback from \(S\) to \(E^-\)</td>
+              <td class="qty-note">\(-U_{cc} < U_s < +U_{cc}\)</td>
+              <td class="qty-note">Yes — \(\varepsilon = 0\)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        Never connect the output directly to the masse — this is a short circuit and will destroy the op-amp. Always verify that negative feedback is present before applying \(\varepsilon = 0\). Feedback must go from \(S\) to \(E^-\), not \(E^+\) (which would be positive feedback → instability).
+      </div>
+
+      <!-- §2 GOLDEN RULES ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-rules" data-chapter="§2 The Two Golden Rules">§2 — The Two Golden Rules</h2>
+
+      <p>In linear regime with ideal op-amp, two rules govern all calculations. Memorise these — everything else is derived from them.</p>
+
+      <div class="eq">
+        $$\boxed{\varepsilon = V(E^+) - V(E^-) = 0} \qquad \Leftrightarrow \qquad V(E^+) = V(E^-)$$
+        <div class="eq-label">Rule 1 — virtual short circuit between inputs (linear regime only)</div>
+      </div>
+
+      <div class="eq">
+        $$\boxed{i(E^+) = i(E^-) = 0}$$
+        <div class="eq-label">Rule 2 — no current into either input (always valid for ideal op-amp)</div>
+      </div>
+
+      <h3>Why Rule 1 holds</h3>
+      <p>The output law is \(U_s = A_d \cdot \varepsilon\). With negative feedback, \(U_s\) is bounded: \(|U_s| < U_{cc}\). Since \(A_d \to \infty\):</p>
+
+      <div class="eq">
+        $$\varepsilon = \frac{U_s}{A_d} \xrightarrow{A_d \to \infty} 0$$
+        <div class="eq-label">Rule 1 derivation — consequence of infinite gain + finite output</div>
+      </div>
+
+      <p>The inputs are <em>not</em> physically connected — the op-amp actively drives its output to whatever value makes \(\varepsilon = 0\). This is the meaning of negative feedback: the output adjusts itself until the two inputs are equalised.</p>
+
+      <h3>Systematic derivation method</h3>
+      <p>Every linear op-amp circuit is solved by the same procedure:</p>
+      <ol style="margin:0.8rem 0 0.8rem 1.5rem; color:var(--text-muted); font-size:0.92rem; line-height:2.2;">
+        <li>Find \(V(E^+)\) — usually direct from the input via a voltage divider or direct connection.</li>
+        <li>Set \(V(E^-) = V(E^+)\) (Rule 1).</li>
+        <li>Apply KCL at the \(E^-\) node using Rule 2 (\(i(E^-) = 0\)) — all branch currents sum to zero.</li>
+        <li>Solve for \(U_s\).</li>
+      </ol>
+
+      <!-- §3 STANDARD CIRCUITS ═════════════════════════════════════════════════ -->
+      <h2 id="sec-circuits" data-chapter="§3 Standard Circuits">§3 — Standard Circuits</h2>
+
+      <h3>Comparator (open loop)</h3>
+      <p>\(U_e\) applied to \(E^+\), \(E^-\) grounded. No feedback — Rule 1 does not apply.</p>
+
+      <div class="eq">
+        $$U_s = \begin{cases} +U_{cc} & \text{if } U_e > 0 \\ -U_{cc} & \text{if } U_e < 0 \end{cases}$$
+        <div class="eq-label">comparator — output is always saturated</div>
+      </div>
+
+      <h3>Voltage follower (montage suiveur)</h3>
+      <p>\(U_e\) to \(E^+\), output fed directly to \(E^-\) (\(R_2 = 0\), \(R_1 = \infty\)).</p>
+
+      <div class="eq">
+        $$V(E^+) = U_e \quad \xrightarrow{\varepsilon=0} \quad V(E^-) = U_e \quad \xrightarrow{V(E^-)=U_s} \quad \boxed{U_s = U_e, \quad G_v = 1}$$
+        <div class="eq-label">follower derivation</div>
+      </div>
+
+      <p>The follower has infinite input impedance and zero output impedance. It passes the signal unchanged while completely decoupling the source from the load — eliminating the loading effect of <a href="L4-filters.html#sec-loading">L4 §3</a>.</p>
+
+      <h3>Non-inverting amplifier</h3>
+      <p>\(U_e\) to \(E^+\). Feedback via voltage divider \(R_1\) (to ground), \(R_2\) (from output).</p>
+
+      <div class="eq">
+        $$V(E^+) = U_e \xrightarrow{\varepsilon=0} V(E^-) = U_e \xrightarrow{\text{divider}} \frac{R_1}{R_1+R_2}U_s = U_e$$
+        <div class="eq-label">non-inverting — step by step</div>
+      </div>
+
+      <div class="eq">
+        $$\boxed{U_s = \left(1 + \frac{R_2}{R_1}\right) U_e} \qquad G_v = 1 + \frac{R_2}{R_1} \geq 1$$
+        <div class="eq-label">non-inverting amplifier — gain always ≥ 1, same sign as input</div>
+      </div>
+
+      <h3>Inverting amplifier</h3>
+      <p>\(U_e\) via \(R_1\) to \(E^-\). \(R_2\) from output to \(E^-\). \(E^+\) grounded.</p>
+
+      <div class="eq">
+        $$V(E^+) = 0 \xrightarrow{\varepsilon=0} V(E^-) = 0 \quad \text{(virtual ground)}$$
+        <div class="eq-label">inverting — E⁻ is at virtual ground</div>
+      </div>
+
+      <div class="eq">
+        $$\text{KCL at } E^-: \quad \frac{U_e}{R_1} + \frac{U_s}{R_2} = 0 \qquad \Rightarrow \qquad \boxed{U_s = -\frac{R_2}{R_1}\,U_e}$$
+        <div class="eq-label">inverting amplifier — gain can be any value, sign inverted</div>
+      </div>
+
+      <h3>Summing amplifier</h3>
+      <p>Multiple inputs \(U_{e1}, U_{e2}, U_{e3}\) via \(R_1, R_2, R_3\) to \(E^-\). Feedback \(R_4\). \(E^+\) grounded.</p>
+      <p>\(V(E^-) = 0\) (virtual ground). KCL at \(E^-\) with Rule 2:</p>
+
+      <div class="eq">
+        $$\frac{U_{e1}}{R_1} + \frac{U_{e2}}{R_2} + \frac{U_{e3}}{R_3} + \frac{U_s}{R_4} = 0$$
+        <div class="eq-label">summing amplifier — KCL at virtual ground node</div>
+      </div>
+
+      <div class="eq">
+        $$\boxed{U_s = -R_4\!\left(\frac{U_{e1}}{R_1} + \frac{U_{e2}}{R_2} + \frac{U_{e3}}{R_3}\right)} \xrightarrow{R_1=R_2=R_3=R} U_s = -\frac{R_4}{R}(U_{e1}+U_{e2}+U_{e3})$$
+        <div class="eq-label">summing amplifier — weighted sum of inputs</div>
+      </div>
+
+      <h3>Differentiator</h3>
+      <p>C in the input branch (from \(U_e\) to \(E^-\)), R in the feedback branch.</p>
+
+      <div class="eq">
+        $$i_C = C\frac{d(u_e - 0)}{dt} = C\frac{du_e}{dt} \qquad i_R = \frac{0 - u_s}{R} \qquad \xrightarrow{i_C + i_R = 0}$$
+        <div class="eq-label">differentiator — KCL at virtual ground</div>
+      </div>
+
+      <div class="eq">
+        $$\boxed{u_s(t) = -RC\,\frac{du_e(t)}{dt}} \qquad \underline{H}(j\omega) = -jRC\omega$$
+        <div class="eq-label">differentiator — time domain and phasor domain</div>
+      </div>
+
+      <h3>Integrator</h3>
+      <p>R in the input branch, C in the feedback branch.</p>
+
+      <div class="eq">
+        $$i_R = \frac{u_e}{R_1} \qquad i_C = C\frac{du_s}{dt} \qquad \xrightarrow{i_R + i_C = 0}$$
+        <div class="eq-label">integrator — KCL at virtual ground</div>
+      </div>
+
+      <div class="eq">
+        $$\boxed{u_s(t) = -\frac{1}{R_1 C}\int_0^t u_e(\tau)\,d\tau} \qquad \underline{H}(j\omega) = \frac{-1}{jR_1C\omega}$$
+        <div class="eq-label">integrator — time domain and phasor domain</div>
+      </div>
+
+      <div class="note">
+        The integrator amplifies low frequencies strongly (\(|\underline{H}| \sim 1/\omega\)) and any residual DC offset \(U_d\) at the input will be integrated indefinitely, driving the output to saturation. Fix: place a large resistor \(R_2\) in parallel with C. This turns the ideal integrator into a pseudo-integrator with \(\underline{H} = -R_2/R_1 \cdot 1/(1+jR_2C\omega)\) — a low-pass filter with gain \(R_2/R_1\) at low frequencies.
+      </div>
+
+      <!-- OPAMP WIDGET ══════════════════════════════════════════════════════════ -->
+      <h2 id="sec-widget" data-chapter="Circuit Calculator">Circuit Calculator</h2>
+
+      <p>Select a circuit, adjust \(R_1\), \(R_2\), \(\pm U_{cc}\). The transfer function, gain, and derivation steps update live. The waveform preview shows the input (blue) and output (red) — note inversion and clipping when the output saturates.</p>
+
+      <div class="widget-wrap">
+        <canvas id="canvas-opamp" class="widget-canvas" width="680" height="260"
+          role="img" aria-label="Op-amp circuit calculator with waveform preview"></canvas>
+        <div class="widget-controls">
+          <label>Circuit</label>
+          <select id="canvas-opamp-type" style="font-family:var(--font-mono);font-size:0.72rem;background:var(--bg);color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:0.2em 0.4em;cursor:pointer;">
+            <option value="non-inv">Non-inverting amp</option>
+            <option value="inv">Inverting amp</option>
+            <option value="follower">Follower</option>
+            <option value="comparator">Comparator</option>
+          </select>
+          <span id="canvas-opamp-R1-row" style="display:contents">
+            <label>R₁</label>
+            <input type="range" id="canvas-opamp-R1" min="100" max="10000" step="100" value="1000">
+            <span class="out" id="canvas-opamp-R1-out">1.0kΩ</span>
+          </span>
+          <span id="canvas-opamp-R2-row" style="display:contents">
+            <label>R₂</label>
+            <input type="range" id="canvas-opamp-R2" min="100" max="100000" step="100" value="10000">
+            <span class="out" id="canvas-opamp-R2-out">10.0kΩ</span>
+          </span>
+          <label>±U<sub>cc</sub></label>
+          <input type="range" id="canvas-opamp-Ucc" min="5" max="15" step="1" value="15">
+          <span class="out" id="canvas-opamp-Ucc-out">±15V</span>
+        </div>
+        <div class="widget-caption">Blue: \(u_e(t)\). Red: \(u_s(t)\). Amber dashed lines: \(\pm U_{cc}\) saturation limits.</div>
+      </div>
+
+      <!-- §4 ACTIVE FILTERS ════════════════════════════════════════════════════ -->
+      <h2 id="sec-active-filters" data-chapter="§4 Active Filters">§4 — Active Filters</h2>
+
+      <p>Passive filters (L4) have two limitations: the transfer function changes when a load is connected, and the gain is always \(\leq 1\). Active filters solve both by incorporating an op-amp.</p>
+
+      <h3>Follower + passive filter</h3>
+      <p>The simplest approach: passive filter → follower. The follower's infinite input impedance means \(i_s = 0\) from the filter's perspective — the loading effect vanishes and \(f_c\) is unchanged regardless of what load follows.</p>
+
+      <h3>Active high-pass filter (inverting)</h3>
+      <p>Replace \(R_1\) in the inverting amplifier with a series RC (C then R). Input branch impedance: \(\underline{Z}_1 = R_1 + 1/jC\omega\). Feedback: \(\underline{Z}_2 = R_2\). Apply the inverting formula with complex impedances:</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = -\frac{\underline{Z}_2}{\underline{Z}_1} = -\frac{R_2}{R_1 + 1/jC\omega} = -\frac{jR_2C\omega}{1 + jR_1C\omega}$$
+        <div class="eq-label">active high-pass filter — inverting configuration</div>
+      </div>
+
+      <div class="eq">
+        $$G_{v,\text{max}} = \frac{R_2}{R_1} \qquad f_c = \frac{1}{2\pi R_1 C}$$
+        <div class="eq-label">active high-pass — gain and cutoff frequency independent of load</div>
+      </div>
+
+      <p>The gain in the passband is \(R_2/R_1\) — which can be \(> 1\). This is impossible for a passive filter. The cutoff frequency depends only on \(R_1\) and \(C\), not on the load.</p>
+
+      <h3>Active low-pass filter (inverting)</h3>
+      <p>Replace \(R_2\) with a parallel RC (R in parallel with C). Feedback impedance: \(\underline{Z}_2 = R_2/(1 + jR_2C\omega)\):</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = -\frac{R_2}{R_1}\cdot\frac{1}{1+jR_2C\omega} \qquad G_{v,\text{max}} = \frac{R_2}{R_1} \qquad f_c = \frac{1}{2\pi R_2 C}$$
+        <div class="eq-label">active low-pass filter — inverting configuration</div>
+      </div>
+
+      <!-- §5 SATURATION AND LIMITS ════════════════════════════════════════════ -->
+      <h2 id="sec-saturation" data-chapter="§5 Saturation & Limits">§5 — Saturation and Real Op-Amp Limits</h2>
+
+      <h3>Finding the saturation threshold</h3>
+      <p>In linear regime: \(|U_s| < U_{cc}\). The maximum input before saturation is:</p>
+
+      <div class="eq">
+        $$|U_{e,\text{max}}| = \frac{U_{cc}}{|G_v|}$$
+        <div class="eq-label">saturation threshold — maximum linear input amplitude</div>
+      </div>
+
+      <p>Example: non-inverting with \(G_v = 10\), \(U_{cc} = 15\,\text{V}\): \(U_{e,\text{max}} = 1.5\,\text{V}\). Any input above 1.5 V peak will clip the output.</p>
+
+      <h3>Real op-amp defects (to know, not calculate)</h3>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Defect</th><th>Ideal</th><th>Real (e.g. LM741)</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Open-loop gain \(A_d\)</td>
+              <td class="qty-unit">\(\infty\)</td>
+              <td class="qty-note">\(\sim 10^5\)–\(10^6\)</td>
+              <td class="qty-note">\(\varepsilon\) is small but nonzero — calculable but negligible in practice.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Saturation \(U_{sat}\)</td>
+              <td class="qty-unit">\(U_{cc}\)</td>
+              <td class="qty-note">\(U_{cc} - 1\) to \(2\,\text{V}\)</td>
+              <td class="qty-note">Actual swing is slightly less than supply.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Offset voltage \(U_d\)</td>
+              <td class="qty-unit">\(0\)</td>
+              <td class="qty-note">\(\sim\) mV</td>
+              <td class="qty-note">Small DC voltage at input — integrator will drift to saturation without \(R_2\) across C.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Gain-bandwidth product</td>
+              <td class="qty-unit">\(\infty\)</td>
+              <td class="qty-note">\(\sim\) MHz</td>
+              <td class="qty-note">\(A_d\) decreases at high frequency — the formula \(G_v = R_2/R_1\) only holds up to \(f_{GBW}/G_v\).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- LINKS BACK ════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-links" data-chapter="→ Summary">Summary — the full chain</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Layer</th><th>Establishes</th><th>Used in L5 as</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name"><a href="L0-voltage-current.html">L0</a></td>
+              <td class="qty-note">\(\vec{E}\), \(V\), \(U\), \(\vec{j}\), \(I\), \(P\)</td>
+              <td class="qty-note">Physical meaning of all voltages and currents at op-amp terminals</td>
+            </tr>
+            <tr>
+              <td class="qty-name"><a href="L1-kirchhoff.html">L1</a></td>
+              <td class="qty-note">KCL, KVL, voltage divider</td>
+              <td class="qty-note">KCL at \(E^-\) node; voltage divider for \(V(E^-)\) in non-inverting; Millman in summing amp</td>
+            </tr>
+            <tr>
+              <td class="qty-name"><a href="L2-components.html">L2</a></td>
+              <td class="qty-note">\(u=Ri\), \(i=C\,du/dt\), \(u=L\,di/dt\)</td>
+              <td class="qty-note">Differentiator and integrator laws; active filter component laws</td>
+            </tr>
+            <tr>
+              <td class="qty-name"><a href="L3-impedance.html">L3</a></td>
+              <td class="qty-note">\(\underline{Z}_R, \underline{Z}_C, \underline{Z}_L\), \(\underline{H}(\omega)\)</td>
+              <td class="qty-note">Active filter transfer functions — replace R with Z in inverting formula</td>
+            </tr>
+            <tr>
+              <td class="qty-name"><a href="L4-filters.html">L4</a></td>
+              <td class="qty-note">Passive filters, loading effect, Bode</td>
+              <td class="qty-note">Active filters fix loading; gain \(>1\) unlocks; same Bode analysis applies</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 
