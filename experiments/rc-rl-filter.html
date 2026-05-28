@@ -149,6 +149,9 @@
       updateTheory();
     });
 
+    // Fire initial load now that everything is wired
+    sm.load();
+
     // ── f_c finder ────────────────────────────────────────────────────────────
     const finder = FcFinder.init('fc-finder-rc', bt, { nPoints: 4, searchMode: 'before-max' });
 

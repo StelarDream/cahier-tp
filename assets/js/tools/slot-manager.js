@@ -243,11 +243,13 @@ const SlotManager = (function () {
         this.value = '';
       });
 
-      // Auto-select first slot on first render
+      // Auto-select first slot on first render but do NOT fire onLoadCb here —
+      // the page wires onLoad after renderBar, so we defer to an explicit load() call.
       if (!activeSlot && slots.length) {
         activeSlot = slots[0].name;
+        const labelEl = barEl.querySelector('#_sm_label');
         const data = loadSlot(activeSlot);
-        if (onLoadCb && data) onLoadCb(data.rows || [], data.components || {});
+        if (labelEl && data) labelEl.value = data.label || activeSlot;
       }
     }
 
@@ -258,6 +260,13 @@ const SlotManager = (function () {
     // ── Public API ───────────────────────────────────────────────────────────
 
     function onLoad(fn) { onLoadCb = fn; }
+
+    // Call this after onLoad() is registered to trigger the initial data load.
+    function load() {
+      if (!activeSlot) return;
+      const data = loadSlot(activeSlot);
+      if (onLoadCb && data) onLoadCb(data.rows || [], data.components || {});
+    }
 
     function save(rows, components) {
       if (!activeSlot) {
@@ -282,7 +291,7 @@ const SlotManager = (function () {
       return data ? (data.rows || []) : [];
     }
 
-    return { renderBar, onLoad, save, getActiveRows, csvToRows, rowsToCsv };
+    return { renderBar, onLoad, load, save, getActiveRows, csvToRows, rowsToCsv };
   }
 
   return { create };
