@@ -14,6 +14,15 @@
     ]})"></script>
   <script src="../assets/js/sidebar.js"></script>
   <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
+  <script src="../assets/js/widgets/phasor.js" defer></script>
+  <script src="../assets/js/widgets/impedance.js" defer></script>
+  <script defer>
+    window.addEventListener('load', function () {
+      PhasorWidget.init('canvas-phasor', { omega: 1.0, phi: 0, amplitude: 1.0 });
+      ImpedanceWidget.init('canvas-impedance');
+    });
+  </script>
 </head>
 <body>
   <aside id="sidebar"></aside>
@@ -23,15 +32,295 @@
 
       <div class="page-header">
         <div class="layer-badge" style="color:var(--layer-3)">L3</div>
-        <h1>L3 · Complex Impedance</h1>
+        <h1>Complex Impedance</h1>
         <p class="subtitle">\(\partial_t \to j\omega\). How sinusoidal regime collapses ODEs into algebra.</p>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- CONTENT GOES HERE                                                   -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="note" style="margin-bottom:2rem">
+        <strong>Conventions on this page</strong> — Lowercase \(u(t)\), \(i(t)\) for real time signals. Underline for complex amplitudes: \(\underline{U}\), \(\underline{I}\), \(\underline{Z}\), \(\underline{H}\). The real signal is always \(u(t) = \mathrm{Re}\{\underline{U}\,e^{j\omega t}\}\). Component laws from <a href="L2-components.html">L2</a> and the voltage divider from <a href="L1-kirchhoff.html">L1</a> are used without re-derivation.
+      </div>
+
+      <!-- QUANTITY TABLE ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-quantities" data-chapter="Quantities">Quantity Reference</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>Symbol · rank · domain</th>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>SI dimensions</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="qty-omega">
+              <td class="qty-sym">\(\omega^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Angular frequency</td>
+              <td class="qty-unit">rad·s⁻¹</td>
+              <td class="qty-dim">\(\mathsf{T^{-1}}\)</td>
+              <td class="qty-note">\(\omega = 2\pi f = 2\pi/T\). The natural variable for impedance expressions.</td>
+            </tr>
+            <tr id="qty-f">
+              <td class="qty-sym">\(f^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Frequency</td>
+              <td class="qty-unit">Hz (Hertz)</td>
+              <td class="qty-dim">\(\mathsf{T^{-1}}\)</td>
+              <td class="qty-note">\(f = 1/T\). What you set on the GBF and read on the oscilloscope.</td>
+            </tr>
+            <tr id="qty-phasor">
+              <td class="qty-sym">\(\underline{X}^{(0)} \in \mathbb{C}\)</td>
+              <td class="qty-name">Complex amplitude (phasor)</td>
+              <td class="qty-unit">same as \(x(t)\)</td>
+              <td class="qty-dim">same as \(x(t)\)</td>
+              <td class="qty-note">\(\underline{X} = X_0\,e^{j\varphi}\). Encodes amplitude and phase. Real signal: \(x(t) = \mathrm{Re}\{\underline{X}\,e^{j\omega t}\}\).</td>
+            </tr>
+            <tr id="qty-Z2">
+              <td class="qty-sym">\(\underline{Z}^{(0)} \in \mathbb{C}\)</td>
+              <td class="qty-name">Complex impedance</td>
+              <td class="qty-unit">Ω (Ohm)</td>
+              <td class="qty-dim">\(\mathsf{M^1 L^2 T^{-3} I^{-2}}\)</td>
+              <td class="qty-note">\(\underline{Z} = \underline{U}/\underline{I}\). Generalises resistance to AC. \(\mathrm{Re}(\underline{Z})\) = resistance, \(\mathrm{Im}(\underline{Z})\) = reactance.</td>
+            </tr>
+            <tr id="qty-H">
+              <td class="qty-sym">\(\underline{H}(\omega)^{(0)} \in \mathbb{C}\)</td>
+              <td class="qty-name">Transfer function</td>
+              <td class="qty-unit">dimensionless (for voltage ratio)</td>
+              <td class="qty-dim">—</td>
+              <td class="qty-note">\(\underline{H} = \underline{U}_s/\underline{U}_e\). \(|\underline{H}|\) = gain. \(\arg(\underline{H})\) = phase shift output vs input.</td>
+            </tr>
+            <tr id="qty-phi-phase">
+              <td class="qty-sym">\(\varphi^{(0)} \in \mathbb{R}\)</td>
+              <td class="qty-name">Phase / phase shift</td>
+              <td class="qty-unit">rad</td>
+              <td class="qty-dim">—</td>
+              <td class="qty-note">Initial phase in \(X_0\cos(\omega t + \varphi)\). Phase shift \(\Delta\varphi = \arg(\underline{H})\) between output and input.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §1 WHY SINUSOIDS ═════════════════════════════════════════════════════ -->
+      <h2 id="sec-sinusoids" data-chapter="§1 Why Sinusoids">§1 — Why Sinusoids Are Special</h2>
+
+      <p>A linear time-invariant circuit can contain any waveform. So why does the whole course focus on sinusoids?</p>
+
+      <p>Two reasons, which together make sinusoids the <em>only</em> input you ever need to study:</p>
+
+      <p><strong>1 — Fourier decomposition.</strong> Any periodic signal can be written as a sum of sinusoids (Fourier series). Any aperiodic signal can be written as a continuous integral of sinusoids (Fourier transform). The square wave, the triangle wave, the arbitrary sensor output — all are sums of sinusoids of the form \(X_0\cos(\omega t + \varphi)\).</p>
+
+      <p><strong>2 — Sinusoids are eigenfunctions of linear circuits.</strong> If you feed a sinusoid at frequency \(\omega\) into any linear circuit, the output is also a sinusoid at exactly the same \(\omega\). Only the amplitude and phase can change. This is not true of other waveforms — a square wave input produces an output that looks nothing like a square wave once filtered. So the response to one sinusoid completely characterises the circuit at that frequency.</p>
+
+      <p>These two facts together mean: study \(|\underline{H}(\omega)|\) and \(\arg(\underline{H}(\omega))\) as functions of \(\omega\), and you know everything about how the circuit treats any signal.</p>
+
+      <!-- §2 COMPLEX REPRESENTATION ════════════════════════════════════════════ -->
+      <h2 id="sec-phasor" data-chapter="§2 Phasor Representation">§2 — Complex Representation of Sinusoids</h2>
+
+      <p>A real sinusoidal signal is written:</p>
+
+      <div class="eq">
+        $$x(t) = X_0 \cos(\omega t + \varphi)$$
+        <div class="eq-label">real sinusoidal signal — time domain</div>
+      </div>
+
+      <p>Using Euler's formula \(e^{j\theta} = \cos\theta + j\sin\theta\), we can write \(\cos\theta = \mathrm{Re}\{e^{j\theta}\}\). So:</p>
+
+      <div class="eq">
+        $$x(t) = \mathrm{Re}\!\left\{X_0\,e^{j(\omega t + \varphi)}\right\} = \mathrm{Re}\!\left\{\underbrace{X_0 e^{j\varphi}}_{\displaystyle\underline{X}}\, e^{j\omega t}\right\}$$
+        <div class="eq-label">real signal as real part of a rotating complex vector</div>
+      </div>
+
+      <p>The <a href="#qty-phasor">complex amplitude</a> (phasor) \(\underline{X} = X_0 e^{j\varphi}\) is a fixed complex number that encodes everything about the signal except the time evolution \(e^{j\omega t}\), which is the same for every signal in the circuit at frequency \(\omega\).</p>
+
+      <h3>The key move: \(d/dt \to j\omega\)</h3>
+      <p>What happens when we differentiate \(x(t) = \mathrm{Re}\{\underline{X}\,e^{j\omega t}\}\)?</p>
+
+      <div class="eq">
+        $$\frac{dx}{dt} = \mathrm{Re}\!\left\{\underline{X}\,\frac{d}{dt}e^{j\omega t}\right\} = \mathrm{Re}\!\left\{j\omega\,\underline{X}\,e^{j\omega t}\right\}$$
+        <div class="eq-label">differentiation in sinusoidal regime</div>
+      </div>
+
+      <p>Differentiation in the time domain corresponds to multiplication by \(j\omega\) in the phasor domain. This is the central algebraic trick of the whole course:</p>
+
+      <div class="eq">
+        $$\boxed{\frac{d}{dt} \;\longleftrightarrow\; j\omega}$$
+        <div class="eq-label">the \(\partial_t \to j\omega\) substitution — turns ODEs into algebra</div>
+      </div>
+
+      <p>Connecting to the coordinate notation: the phasor \(\underline{X}\) is the signal expressed in the frequency-domain basis. The substitution \(\partial_t \to j\omega\) is the coordinate change from the time domain to the phasor domain. Just as \((1,\pi)|_\text{pol}\) and \((-1,0)|_\text{cart}\) represent the same geometric point, \(x(t) = X_0\cos(\omega t + \varphi)\) and \(\underline{X} = X_0 e^{j\varphi}\) represent the same signal — in different bases.</p>
+
+      <!-- PHASOR WIDGET ═════════════════════════════════════════════════════════ -->
+      <div class="widget-wrap">
+        <canvas id="canvas-phasor" class="widget-canvas" width="700" height="300"
+          role="img" aria-label="Phasor rotating in the complex plane with real projection on time axis"></canvas>
+        <div class="widget-controls">
+          <button class="widget-play" id="canvas-phasor-play">⏸ Pause</button>
+          <label>ω</label>
+          <input type="range" id="canvas-phasor-omega" min="0.3" max="3.0" step="0.1" value="1.0">
+          <span class="out" id="canvas-phasor-omega-out">1.0</span>
+          <label>φ</label>
+          <input type="range" id="canvas-phasor-phi" min="-180" max="180" step="5" value="0">
+          <span class="out" id="canvas-phasor-phi-out">0°</span>
+          <label>X₀</label>
+          <input type="range" id="canvas-phasor-amp" min="0.3" max="1.0" step="0.05" value="1.0">
+          <span class="out" id="canvas-phasor-amp-out">1.0</span>
+        </div>
+        <div class="widget-caption">Left: phasor \(\underline{X} = X_0 e^{j\varphi}\) rotating at \(\omega\) in the complex plane. Right: its real projection \(\mathrm{Re}\{\underline{X}\,e^{j\omega t}\} = X_0\cos(\omega t + \varphi)\) traced over time. The blue dot on the time axis is the real value at the current instant.</div>
+      </div>
+
+      <!-- §3 COMPLEX IMPEDANCE ═════════════════════════════════════════════════ -->
+      <h2 id="sec-impedance" data-chapter="§3 Complex Impedance">§3 — Complex Impedance</h2>
+
+      <p>Apply \(\partial_t \to j\omega\) to each constitutive law from <a href="L2-components.html">L2</a>. In sinusoidal regime, \(u(t) \leftrightarrow \underline{U}\) and \(i(t) \leftrightarrow \underline{I}\):</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Component</th><th>Time-domain law</th><th>Phasor domain</th><th>Impedance \(\underline{Z} = \underline{U}/\underline{I}\)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Resistor</td>
+              <td class="qty-unit">\(u = Ri\)</td>
+              <td class="qty-unit">\(\underline{U} = R\,\underline{I}\)</td>
+              <td class="qty-unit">\(\underline{Z}_R = R\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Capacitor</td>
+              <td class="qty-unit">\(i = C\,du/dt\)</td>
+              <td class="qty-unit">\(\underline{I} = jC\omega\,\underline{U}\)</td>
+              <td class="qty-unit">\(\underline{Z}_C = \dfrac{1}{jC\omega}\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Inductor</td>
+              <td class="qty-unit">\(u = L\,di/dt\)</td>
+              <td class="qty-unit">\(\underline{U} = jL\omega\,\underline{I}\)</td>
+              <td class="qty-unit">\(\underline{Z}_L = jL\omega\)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>KVL and KCL hold unchanged for phasors — the derivations in <a href="L1-kirchhoff.html">L1</a> apply identically with \(\underline{U}_k\) and \(\underline{I}_k\). The voltage divider from <a href="L1-kirchhoff.html#sec-divider">L1 §5</a> becomes:</p>
+
+      <div class="eq">
+        $$\underline{U}_s = \frac{\underline{Z}_2}{\underline{Z}_1 + \underline{Z}_2}\,\underline{U}_e$$
+        <div class="eq-label">voltage divider — general complex impedance form</div>
+      </div>
+
+      <h3>Module and argument of \(\underline{Z}\)</h3>
+      <p>Writing \(\underline{Z} = |\underline{Z}|\,e^{j\psi}\):</p>
+      <ul style="margin: 0.8rem 0 0.8rem 1.5rem; color:var(--text-muted); font-size:0.92rem; line-height:2.0;">
+        <li>\(|\underline{Z}|\) — ratio of voltage amplitude to current amplitude: \(U_0 = |\underline{Z}|\,I_0\)</li>
+        <li>\(\psi = \arg(\underline{Z})\) — phase of \(u\) relative to \(i\). For \(\underline{Z}_C\): \(\psi = -\pi/2\) (current leads voltage by 90°). For \(\underline{Z}_L\): \(\psi = +\pi/2\) (current lags voltage by 90°).</li>
+        <li>\(\mathrm{Re}(\underline{Z})\) — resistance: energy dissipated per cycle</li>
+        <li>\(\mathrm{Im}(\underline{Z})\) — reactance: energy stored and returned per cycle</li>
+      </ul>
+
+      <!-- IMPEDANCE WIDGET ══════════════════════════════════════════════════════ -->
+      <div class="widget-wrap">
+        <canvas id="canvas-impedance" class="widget-canvas" width="680" height="320"
+          role="img" aria-label="Impedance vectors in the complex plane"></canvas>
+        <div class="widget-controls">
+          <label>R</label>
+          <input type="range" id="canvas-impedance-R" min="100" max="10000" step="100" value="1000">
+          <span class="out" id="canvas-impedance-R-out">1.0k</span>
+          <label>C (µF)</label>
+          <input type="range" id="canvas-impedance-C" min="0.1" max="10" step="0.1" value="1.0">
+          <span class="out" id="canvas-impedance-C-out">1.0µF</span>
+          <label>L (mH)</label>
+          <input type="range" id="canvas-impedance-L" min="10" max="500" step="10" value="100">
+          <span class="out" id="canvas-impedance-L-out">100mH</span>
+          <label>ω (rad/s)</label>
+          <input type="range" id="canvas-impedance-omega" min="100" max="100000" step="100" value="1000">
+          <span class="out" id="canvas-impedance-omega-out">159Hz</span>
+        </div>
+        <div class="widget-caption">\(\underline{Z}_R\) (blue) stays on the real axis — purely resistive. \(\underline{Z}_C\) (rose) points along \(-j\) — capacitive reactance decreases with \(\omega\). \(\underline{Z}_L\) (violet) points along \(+j\) — inductive reactance increases with \(\omega\). Watch what happens near \(\omega_0 = 1/\sqrt{LC}\).</div>
+      </div>
+
+      <!-- §4 TRANSFER FUNCTION ═════════════════════════════════════════════════ -->
+      <h2 id="sec-transfer" data-chapter="§4 Transfer Function H(ω)">§4 — Transfer Function \(\underline{H}(\omega)\)</h2>
+
+      <p>For a two-port circuit with input \(\underline{U}_e\) and output \(\underline{U}_s\), the <a href="#qty-H">transfer function</a> is:</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = \frac{\underline{U}_s}{\underline{U}_e}$$
+        <div class="eq-label">transfer function — definition</div>
+      </div>
+
+      <p>It is a complex function of \(\omega\). Its two components carry all the information about how the circuit modifies a sinusoidal input:</p>
+
+      <div class="eq">
+        $$G_v(\omega) = |\underline{H}(\omega)| \qquad \Delta\varphi(\omega) = \arg(\underline{H}(\omega))$$
+        <div class="eq-label">voltage gain and phase shift from \(\underline{H}\)</div>
+      </div>
+
+      <p>\(G_v\) tells you how much the amplitude is scaled. \(\Delta\varphi\) tells you how much the output lags or leads the input. Both are measurable directly on the oscilloscope: \(G_v = U_s^\text{pp}/U_e^\text{pp}\), and \(\Delta\varphi = (2\pi\,\Delta t)/T\) where \(\Delta t\) is the time shift between the two waveforms.</p>
+
+      <h3>Worked example — RC low-pass filter</h3>
+      <p>Apply the voltage divider with \(\underline{Z}_C\) (output) and \(\underline{Z}_R\) (series):</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = \frac{\underline{Z}_C}{\underline{Z}_R + \underline{Z}_C} = \frac{1/jC\omega}{R + 1/jC\omega} = \frac{1}{1 + jRC\omega}$$
+        <div class="eq-label">RC low-pass transfer function — from voltage divider</div>
+      </div>
+
+      <p>Setting \(\omega_0 = 1/RC\) and \(x = \omega/\omega_0\):</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = \frac{1}{1+jx} \qquad G_v = \frac{1}{\sqrt{1+x^2}} \qquad \Delta\varphi = -\arctan(x)$$
+        <div class="eq-label">RC low-pass — gain and phase in normalised form</div>
+      </div>
+
+      <p>At \(\omega = \omega_0\) (i.e. \(x = 1\)): \(G_v = 1/\sqrt{2}\) and \(\Delta\varphi = -\pi/4\). This is the cutoff frequency — the \(-3\,\text{dB}\) point. The full Bode diagram treatment is in <a href="L4-filters.html">L4</a>.</p>
+
+      <div class="note">
+        To measure \(\Delta\varphi\) on the oscilloscope: display both channels, read the time delay \(\Delta t\) between the two zero-crossings (or peaks), then \(\Delta\varphi = 2\pi\,\Delta t / T\). The built-in phase measurement function does this automatically. At the cutoff frequency, you should see exactly \(-45°\) for an RC low-pass.
+      </div>
+
+      <!-- §5 READING H FROM THE COMPLEX PLANE ══════════════════════════════════ -->
+      <h2 id="sec-reading-H" data-chapter="§5 Reading H Geometrically">§5 — Reading \(\underline{H}\) Geometrically</h2>
+
+      <p>Since \(\underline{H}(\omega) = \underline{Z}_2/(\underline{Z}_1 + \underline{Z}_2)\) for a voltage divider, and all three quantities are complex numbers, you can read gain and phase shift directly from the complex plane without computing.</p>
+
+      <p>Write \(\underline{H} = A/B\) where \(A = \underline{Z}_2\) and \(B = \underline{Z}_1 + \underline{Z}_2\):</p>
+
+      <ul style="margin: 0.8rem 0 0.8rem 1.5rem; color:var(--text-muted); font-size:0.92rem; line-height:2.0;">
+        <li>\(|\underline{H}| = |A|/|B|\) — ratio of the two moduli (lengths of the vectors)</li>
+        <li>\(\arg(\underline{H}) = \arg(A) - \arg(B)\) — difference of the two arguments (angles)</li>
+      </ul>
+
+      <p>At low frequency (\(\omega \to 0\)): \(\underline{Z}_C \to \infty\), so \(B \approx A\), giving \(|\underline{H}| \to 1\) and \(\arg(\underline{H}) \to 0\). The circuit passes DC unchanged — as expected for a low-pass. At high frequency (\(\omega \to \infty\)): \(\underline{Z}_C \to 0\), so \(A \to 0\) and \(|\underline{H}| \to 0\). The capacitor becomes a short circuit and the output collapses.</p>
+
+      <p>This geometric reading is the fastest way to identify filter type and sketch the Bode diagram without calculating. It is the first step of every filter problem in <a href="L4-filters.html">L4</a>.</p>
+
+      <!-- LINKS FORWARD ════════════════════════════════════════════════════════ -->
+      <h2 id="sec-links" data-chapter="→ Links forward">What comes next</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>This page establishes</th><th>Used in</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">\(\underline{H}(\omega) = \underline{U}_s/\underline{U}_e\) — gain and phase</td>
+              <td class="qty-name"><a href="L4-filters.html">L4</a> — plot \(|\underline{H}|\) in dB and \(\arg(\underline{H})\) vs \(\log\omega\) → Bode diagram</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Voltage divider with \(\underline{Z}\) — master formula</td>
+              <td class="qty-name"><a href="L4-filters.html">L4</a> — every RC, RL, RLC transfer function is a voltage divider</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Phasor algebra — KVL/KCL with complex numbers</td>
+              <td class="qty-name"><a href="L5-opamp.html">L5</a> — op-amp circuit analysis uses the same machinery</td>
+            </tr>
+            <tr>
+              <td class="qty-name">\(\Delta\varphi = \arg(\underline{H})\) — measured on oscilloscope</td>
+              <td class="qty-name">TP3-5 — phase measurement between voie 1 and voie 2</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 
