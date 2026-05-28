@@ -16,6 +16,7 @@
   <script src="../assets/js/nav.js" defer></script>
   <script src="../assets/js/chapters.js" defer></script>
   <script src="../assets/js/tools/slot-manager.js" defer></script>
+  <script src="../assets/js/tools/loading-table.js" defer></script>
   <script src="../assets/js/tools/bode-table.js" defer></script>
   <script src="../assets/js/tools/fc-finder.js" defer></script>
 </head>
@@ -29,7 +30,7 @@
       <div class="page-header">
         <div class="layer-badge" style="color:var(--exp)">EXP</div>
         <h1>Loading Effect</h1>
-        <p class="subtitle">Measure how \(f_c\) shifts as the load resistance \(R_L\) changes. Verify the theoretical \(f_c(R_L)\) relation.</p>
+        <p class="subtitle">How \(f_c\) shifts as load resistance \(R_L\) changes. Verify the theoretical \(f_c(R_L)\) relation and observe the Bode diagram at a fixed load.</p>
       </div>
 
       <div class="theory-bar">
@@ -37,21 +38,111 @@
         <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-loading">L4 · Loading Effect</a>
         <a class="theory-pill" style="color:var(--layer-1)" href="../layers/L1-kirchhoff.html#sec-divider">L1 · Voltage Divider</a>
         <a class="theory-pill" style="color:var(--layer-5)" href="../layers/L5-opamp.html#sec-circuits">L5 · Follower</a>
+        <a class="theory-pill" style="color:var(--layer-3)" href="../layers/L3-impedance.html#sec-impedance">L3 · Impedance</a>
       </div>
 
-      
-      <h2 id="sec-config" data-chapter="Configuration">Configuration</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <!-- ── Theory recap ─────────────────────────────────────────────────── -->
+      <h2 id="sec-theory" data-chapter="Theory">Theory Recap</h2>
 
-      <h2 id="sec-data" data-chapter="f_c vs R_L Data">f_c vs R_L Data</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <p>The unloaded CR high-pass has \(f_c = 1/(2\pi RC)\). When a load \(R_L\) is placed across the output, the effective resistance becomes \(R \| R_L\) and the transfer function changes:</p>
 
-      <h2 id="sec-plot" data-chapter="f_c(R_L) Plot">f_c(R_L) Plot</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="eq">
+        $$\underline{H}'(\omega) = \frac{R \| R_L}{R \| R_L + \underline{Z}_C} \qquad \Rightarrow \qquad \boxed{f_c(R_L) = \frac{R + R_L}{2\pi C \cdot R \cdot R_L}}$$
+        <div class="eq-label">loaded CR high-pass — cutoff frequency shifts with \(R_L\)</div>
+      </div>
 
+      <p>As \(R_L \to \infty\) (no load): \(f_c \to 1/(2\pi RC)\) — the unloaded value. As \(R_L \to 0\): \(f_c \to \infty\) — the filter is destroyed. The smaller the load, the higher the cutoff frequency and the more distorted the passband.</p>
+
+      <!-- ── Circuit config ────────────────────────────────────────────────── -->
+      <h2 id="sec-config" data-chapter="Configuration">Circuit Configuration</h2>
+
+      <div style="display:flex;flex-wrap:wrap;gap:1.5rem;margin:1rem 0 1.5rem;">
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
+          <input type="number" id="param-R" value="1000" min="1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">C (µF)</label><br>
+          <input type="number" id="param-C" value="1.0" min="0.001" step="0.1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+      </div>
+
+      <div id="theory-fc-display" class="note" style="margin-bottom:1.5rem;"></div>
+
+      <!-- ── Part A: f_c vs R_L ───────────────────────────────────────────── -->
+      <h2 id="sec-fcrl" data-chapter="Part A — f_c vs R_L">Part A — \(f_c\) vs \(R_L\)</h2>
+
+      <p>Measure the cutoff frequency for each value of \(R_L\). The tool plots your measurements against the theoretical curve \(f_c(R_L) = (R + R_L)/(2\pi C R R_L)\).</p>
+
+      <div class="slot-bar" id="slot-bar-loading"></div>
+
+      <div class="tool-toolbar">
+        <label style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          <input type="checkbox" id="show-uncert-loading" checked style="margin-right:0.3rem;">
+          Show uncertainty columns
+        </label>
+        <button class="tool-btn primary" id="btn-save-loading">💾 Save</button>
+        <button class="tool-btn" id="btn-export-loading">↓ CSV</button>
+        <label class="tool-btn" style="cursor:pointer">↑ Import CSV
+          <input type="file" accept=".csv" style="display:none" id="btn-import-loading">
+        </label>
+        <button class="tool-btn" id="btn-clear-loading">Clear f_c values</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tbl-loading"></table>
+      </div>
+
+      <canvas id="canvas-loading" class="widget-canvas" width="700" height="380"
+        style="margin-top:1.5rem;"
+        role="img" aria-label="f_c vs R_L plot with theory overlay"></canvas>
+      <div class="widget-caption">Warm-grey dots: measured \(f_c\). Amber dashed: theoretical \(f_c(R_L) = (R+R_L)/(2\pi CRR_L)\). Amber horizontal line: unloaded \(f_c = 1/(2\pi RC)\).</div>
+
+      <!-- Conclusions A -->
+      <div id="conclusions-a" class="note" style="margin-top:1rem;line-height:2.0;"></div>
+
+      <!-- ── Part B: Bode at fixed R_L ────────────────────────────────────── -->
+      <h2 id="sec-bode-fixed" data-chapter="Part B — Bode at fixed R_L">Part B — Bode at Fixed \(R_L\)</h2>
+
+      <p>Set \(R_L\) to a fixed value and measure the full Bode diagram. Compare \(f_c\) to the theoretical prediction from Part A.</p>
+
+      <div style="display:flex;align-items:center;gap:1rem;margin:1rem 0 1.5rem;flex-wrap:wrap;">
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">Fixed R_L (Ω)</label><br>
+          <input type="number" id="param-RL-fixed" value="200" min="1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+        <div id="bode-theory-display" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-muted);margin-top:1.2rem;"></div>
+      </div>
+
+      <div class="slot-bar" id="slot-bar-bode"></div>
+
+      <div class="tool-toolbar">
+        <label style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          <input type="checkbox" id="show-uncert-bode" checked style="margin-right:0.3rem;">
+          Show uncertainty columns
+        </label>
+        <button class="tool-btn primary" id="btn-save-bode">💾 Save</button>
+        <button class="tool-btn" id="btn-clear-bode">Clear</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tbl-bode"></table>
+      </div>
+
+      <canvas id="canvas-bode" class="widget-canvas" width="700" height="500"
+        style="margin-top:1.5rem;"
+        role="img" aria-label="Bode plot at fixed R_L"></canvas>
+      <div class="widget-caption">Bode diagram of the loaded CR high-pass at the fixed \(R_L\) above.</div>
+
+      <h2 id="sec-fc" data-chapter="f_c Finder">Cutoff Frequency</h2>
+      <div id="fc-finder-bode"></div>
+
+      <!-- ── Conclusions ───────────────────────────────────────────────────── -->
       <h2 id="sec-conclusions" data-chapter="Conclusions">Conclusions</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
-
+      <div id="conclusions-b" class="note" style="line-height:2.0;"></div>
 
       <div class="page-nav">
         <a href="rc-rl-filter.html">← RC / RL Filter</a>
@@ -60,5 +151,194 @@
 
     </div>
   </main>
+
+  <script>
+  window.addEventListener('load', function () {
+
+    // ── Slot managers ─────────────────────────────────────────────────────────
+    const smLoading = SlotManager.create('loading-effect-fcrl');
+    smLoading.renderBar('slot-bar-loading');
+
+    const smBode = SlotManager.create('loading-effect-bode');
+    smBode.renderBar('slot-bar-bode');
+
+    // ── Tables ────────────────────────────────────────────────────────────────
+    const lt = LoadingTable.create({
+      tableId:  'tbl-loading',
+      canvasId: 'canvas-loading',
+    });
+
+    const bt = BodeTable.create({
+      tableId:  'tbl-bode',
+      canvasId: 'canvas-bode',
+      showUncert: true,
+    });
+
+    // ── Slot load callbacks ───────────────────────────────────────────────────
+    smLoading.onLoad(function (rows, components) {
+      lt.setRows(rows);
+      if (components.R) document.getElementById('param-R').value = components.R;
+      if (components.C) document.getElementById('param-C').value = components.C * 1e6;
+      updateComponents();
+    });
+
+    smBode.onLoad(function (rows, components) {
+      bt.setRows(rows);
+      if (components.RL) document.getElementById('param-RL-fixed').value = components.RL;
+      updateBodeTheory();
+    });
+
+    // ── f_c finder (Part B) ───────────────────────────────────────────────────
+    const finder = FcFinder.init('fc-finder-bode', bt, { nPoints: 4, searchMode: 'before-max' });
+
+    // Fire initial loads after everything wired
+    smLoading.load();
+    smBode.load();
+
+    // ── Component helpers ─────────────────────────────────────────────────────
+    function getR()  { return parseFloat(document.getElementById('param-R').value) || 1000; }
+    function getC()  { return (parseFloat(document.getElementById('param-C').value) || 1) * 1e-6; }
+    function getRL() { return parseFloat(document.getElementById('param-RL-fixed').value) || 200; }
+
+    function theoryFcLoaded(R, C, RL) {
+      return (R + RL) / (2 * Math.PI * C * R * RL);
+    }
+
+    function fmtFreq(f) {
+      if (!f) return '—';
+      return f >= 1000 ? (f/1000).toFixed(3) + ' kHz' : f.toFixed(1) + ' Hz';
+    }
+
+    function updateComponents() {
+      const R = getR(), C = getC();
+      const fc_no_load = 1 / (2 * Math.PI * R * C);
+      document.getElementById('theory-fc-display').innerHTML =
+        `<strong>Unloaded CR high-pass</strong> — \
+\\(f_c = \\frac{1}{2\\pi RC} = \\frac{1}{2\\pi \\times ${R}\\,\\Omega \\times ${(C*1e6).toFixed(1)}\\,\\mu F} = ${fmtFreq(fc_no_load)}\\)`;
+      lt.setComponents({ R, C });
+      if (window.renderMathInElement)
+        renderMathInElement(document.getElementById('theory-fc-display'));
+      updateConclusionsA();
+      updateBodeTheory();
+    }
+
+    function updateBodeTheory() {
+      const R = getR(), C = getC(), RL = getRL();
+      const fc_loaded = theoryFcLoaded(R, C, RL);
+      const fc_no_load = 1 / (2 * Math.PI * R * C);
+      document.getElementById('bode-theory-display').textContent =
+        `Theory: f_c(R_L=${RL}Ω) = ${fmtFreq(fc_loaded)}  (unloaded: ${fmtFreq(fc_no_load)})`;
+      if (finder) finder.setTheory(fc_loaded, `f_c theory (R_L=${RL}Ω)`);
+      updateConclusionsB();
+    }
+
+    function updateConclusionsA() {
+      const box = document.getElementById('conclusions-a');
+      const R = getR(), C = getC();
+      const validRows = lt.getRows().filter(r => r.rl !== null && r.fc !== null);
+      if (validRows.length < 2) {
+        box.textContent = 'Enter at least 2 (R_L, f_c) pairs to generate conclusions.';
+        return;
+      }
+      const fc_no_load = 1 / (2 * Math.PI * R * C);
+      const errors = validRows.map(r => {
+        const fc_th = (R + r.rl) / (2 * Math.PI * C * R * r.rl);
+        return Math.abs(r.fc - fc_th) / fc_th * 100;
+      });
+      const avgErr = errors.reduce((a,b) => a+b, 0) / errors.length;
+      const maxErr = Math.max(...errors);
+      const trend = validRows[0].fc > validRows[validRows.length-1].fc
+        ? 'decreases' : 'increases';
+
+      let html = `\\(f_c\\) ${trend} with \\(R_L\\) — consistent with \\(f_c(R_L) = (R+R_L)/(2\\pi CRR_L)\\).<br>`;
+      html += `Mean relative error vs theory: <strong>${avgErr.toFixed(1)}%</strong>`;
+      if (maxErr > 15) html += ` (max ${maxErr.toFixed(1)}% — check component tolerance or wiring)`;
+      else if (avgErr < 5) html += ' ✓ Good agreement.';
+      html += `<br>Unloaded \\(f_c = ${fmtFreq(fc_no_load)}\\). `;
+      const smallestRL = Math.min(...validRows.map(r => r.rl));
+      const fc_at_smallest = validRows.find(r => r.rl === smallestRL);
+      if (fc_at_smallest) {
+        const shift = ((fc_at_smallest.fc - fc_no_load) / fc_no_load * 100).toFixed(0);
+        html += `At \\(R_L = ${smallestRL}\\,\\Omega\\): \\(f_c\\) shifted by <strong>${shift}%</strong> from unloaded value — this demonstrates the loading effect.`;
+      }
+      box.innerHTML = html;
+      if (window.renderMathInElement) renderMathInElement(box);
+    }
+
+    function updateConclusionsB() {
+      const box = document.getElementById('conclusions-b');
+      const R = getR(), C = getC(), RL = getRL();
+      const rows = bt.getRows();
+      if (rows.filter(r => r.f && r.ue && r.us).length < 3) {
+        box.textContent = 'Enter at least 3 Bode measurement points to generate conclusions.';
+        return;
+      }
+      const fc_loaded_th = theoryFcLoaded(R, C, RL);
+      const fc_noload_th = 1 / (2 * Math.PI * R * C);
+      const result = FcFinder.computeFc(rows, 4, 'before-max');
+      const fc_meas = result.fc_low;
+
+      let html = '';
+      if (fc_meas) {
+        const err = Math.abs(fc_meas - fc_loaded_th) / fc_loaded_th * 100;
+        html += `Measured \\(f_c \\approx ${fmtFreq(fc_meas)}\\) vs theoretical \\(${fmtFreq(fc_loaded_th)}\\) — error: <strong>${err.toFixed(1)}%</strong>.<br>`;
+        const shift = ((fc_loaded_th - fc_noload_th) / fc_noload_th * 100).toFixed(0);
+        html += `The load \\(R_L = ${RL}\\,\\Omega\\) shifted \\(f_c\\) by ${shift}% compared to the unloaded filter. `;
+        html += `This confirms that a low impedance load significantly degrades filter performance.`;
+      } else {
+        html += 'Could not find −3 dB crossing. Add more measurement points near the cutoff frequency.';
+      }
+      box.innerHTML = html;
+      if (window.renderMathInElement) renderMathInElement(box);
+    }
+
+    // ── Wire controls ─────────────────────────────────────────────────────────
+    ['param-R','param-C'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateComponents);
+    });
+    document.getElementById('param-RL-fixed').addEventListener('input', updateBodeTheory);
+
+    document.getElementById('show-uncert-loading').addEventListener('change', function () {
+      lt.setShowUncert(this.checked);
+    });
+    document.getElementById('show-uncert-bode').addEventListener('change', function () {
+      bt.setShowUncert(this.checked);
+    });
+
+    document.getElementById('btn-export-loading').addEventListener('click', () => {
+      lt.exportCsv();
+    });
+    document.getElementById('btn-import-loading').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      lt.importCsv(file).then(newRows => {
+        lt.setRows(newRows);
+        smLoading.save(newRows, { R: getR(), C: getC() });
+        updateConclusionsA();
+      }).catch(err => alert('Import failed: ' + err.message));
+      this.value = '';
+    });
+    document.getElementById('btn-save-loading').addEventListener('click', () => {
+      smLoading.save(lt.getRows(), { R: getR(), C: getC() });
+    });
+    document.getElementById('btn-save-bode').addEventListener('click', () => {
+      smBode.save(bt.getRows(), { R: getR(), C: getC(), RL: getRL() });
+    });
+    document.getElementById('btn-clear-loading').addEventListener('click', () => {
+      if (confirm('Clear all f_c values? (R_L values kept)')) {
+        const cleared = lt.getRows().map(r => Object.assign({}, r, { fc: null, u_fc: null, phi: null, u_phi: null }));
+        lt.setRows(cleared);
+      }
+    });
+    document.getElementById('btn-clear-bode').addEventListener('click', () => {
+      if (confirm('Clear all Bode rows?')) bt.setRows([]);
+    });
+
+    lt.onchange(updateConclusionsA);
+    bt.onchange(updateConclusionsB);
+
+    updateComponents();
+  });
+  </script>
 </body>
 </html>
