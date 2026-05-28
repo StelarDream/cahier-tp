@@ -30,4 +30,36 @@ function buildSidebar(root) {
 
   const sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.innerHTML = html;
+  
+  // Add event listeners to close sidebar when a link is clicked
+  document.querySelectorAll('#sidebar nav a').forEach(link => {
+    link.addEventListener('click', closeSidebar);
+  });
 }
+
+/* Toggle sidebar visibility on small screens */
+function toggleSidebar() {
+  const isOpen = document.body.classList.toggle('sidebar-open');
+  const btn = document.getElementById('sidebar-toggle');
+  btn.textContent = isOpen ? '✕' : '☰';
+}
+
+/* Close sidebar */
+function closeSidebar() {
+  document.body.classList.remove('sidebar-open');
+  const btn = document.getElementById('sidebar-toggle');
+  btn.textContent = '☰';
+}
+
+/* Close sidebar when clicking on backdrop */
+document.addEventListener('DOMContentLoaded', function() {
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', closeSidebar);
+  }
+  
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleSidebar);
+  }
+});
