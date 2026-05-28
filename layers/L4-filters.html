@@ -14,6 +14,13 @@
     ]})"></script>
   <script src="../assets/js/sidebar.js"></script>
   <script src="../assets/js/nav.js" defer></script>
+  <script src="../assets/js/chapters.js" defer></script>
+  <script src="../assets/js/widgets/bode.js" defer></script>
+  <script defer>
+    window.addEventListener('load', function () {
+      BodeWidget.init('canvas-bode');
+    });
+  </script>
 </head>
 <body>
   <aside id="sidebar"></aside>
@@ -23,15 +30,372 @@
 
       <div class="page-header">
         <div class="layer-badge" style="color:var(--layer-4)">L4</div>
-        <h1>L4 · Filters &amp; Bode</h1>
+        <h1>Filters &amp; Bode</h1>
         <p class="subtitle">Transfer function \(H(\omega)\), gain, phase, cutoff at \(-3\,\text{dB}\). Bode diagrams.</p>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- CONTENT GOES HERE                                                   -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="note" style="margin-bottom:2rem">
+        <strong>Conventions on this page</strong> — \(\underline{H}(\omega) = \underline{U}_s/\underline{U}_e\) throughout. Normalised variable \(x = \omega/\omega_0 = f/f_c\). All transfer functions derived as voltage dividers with complex impedances from <a href="L3-impedance.html">L3</a>. DC/HF limits use open/short circuit rules from <a href="L2-components.html">L2</a>.
+      </div>
+
+      <!-- QUANTITY TABLE ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-quantities" data-chapter="Quantities">Quantity Reference</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>Symbol · rank · domain</th>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>SI dimensions</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="qty-gdB">
+              <td class="qty-sym">\(g_{dB}^{(0)} \in \mathbb{R}\)</td>
+              <td class="qty-name">Gain in decibels</td>
+              <td class="qty-unit">dB</td>
+              <td class="qty-dim">—</td>
+              <td class="qty-note">\(g_{dB} = 20\log_{10}(G_v)\). At cutoff: \(g_{dB} = -3\,\text{dB}\). Gains multiply → dB values add.</td>
+            </tr>
+            <tr id="qty-fc">
+              <td class="qty-sym">\(f_c^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Cutoff frequency</td>
+              <td class="qty-unit">Hz</td>
+              <td class="qty-dim">\(\mathsf{T^{-1}}\)</td>
+              <td class="qty-note">Frequency where \(G_v = G_{v,\text{max}}/\sqrt{2}\), i.e. \(g_{dB} = g_{dB,\text{max}} - 3\,\text{dB}\). Power halved.</td>
+            </tr>
+            <tr id="qty-omega0">
+              <td class="qty-sym">\(\omega_0^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Natural / resonant frequency</td>
+              <td class="qty-unit">rad·s⁻¹</td>
+              <td class="qty-dim">\(\mathsf{T^{-1}}\)</td>
+              <td class="qty-note">\(\omega_0 = 1/\sqrt{LC}\) for RLC. For first-order: \(\omega_0 = \omega_c = 1/RC\) or \(R/L\).</td>
+            </tr>
+            <tr id="qty-Q">
+              <td class="qty-sym">\(Q^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Quality factor</td>
+              <td class="qty-unit">dimensionless</td>
+              <td class="qty-dim">—</td>
+              <td class="qty-note">\(Q = \omega_0 L / R = (1/R)\sqrt{L/C}\). Controls resonance sharpness. \(Q > 1/\sqrt{2}\): surtension on \(U_C\).</td>
+            </tr>
+            <tr id="qty-BW">
+              <td class="qty-sym">\(\Delta f^{(0)} \in \mathbb{R}^+\)</td>
+              <td class="qty-name">Bandwidth</td>
+              <td class="qty-unit">Hz</td>
+              <td class="qty-dim">\(\mathsf{T^{-1}}\)</td>
+              <td class="qty-note">\(\Delta f = f_2 - f_1\) where \(f_1, f_2\) are the two \(-3\,\text{dB}\) points. For RLC band-pass: \(\Delta f = f_0/Q\).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §1 BODE DIAGRAM ══════════════════════════════════════════════════════ -->
+      <h2 id="sec-bode" data-chapter="§1 Bode Diagram">§1 — The Bode Diagram</h2>
+
+      <h3>Why decibels and log scale</h3>
+      <p>When filters are cascaded, their gains multiply: \(G_{v,\text{total}} = G_{v,1} \cdot G_{v,2} \cdots\). Taking logarithms turns multiplication into addition:</p>
+
+      <div class="eq">
+        $$g_{dB} = 20\log_{10}(G_v) \qquad \Rightarrow \qquad g_{dB,\text{total}} = g_{dB,1} + g_{dB,2} + \cdots$$
+        <div class="eq-label">decibel definition — cascaded gains add</div>
+      </div>
+
+      <p>The frequency axis is logarithmic because circuits respond to <em>ratios</em> of frequency, not absolute differences. One decade is a factor of 10 in frequency. The slopes of filter asymptotes are always quoted in dB per decade.</p>
+
+      <h3>Structure of the diagram</h3>
+      <p>A Bode diagram has two panels sharing the same log-frequency axis:</p>
+      <ul style="margin:0.8rem 0 0.8rem 1.5rem; color:var(--text-muted); font-size:0.92rem; line-height:2.0;">
+        <li>Top: \(g_{dB}(f) = 20\log|\underline{H}(\omega)|\) — gain in dB</li>
+        <li>Bottom: \(\Delta\varphi(f) = \arg(\underline{H}(\omega))\) — phase shift in degrees</li>
+      </ul>
+
+      <h3>Asymptote method</h3>
+      <p>The exact Bode curve is approximated by straight-line asymptotes — this is what you draw by hand. The rules are simple:</p>
+      <ul style="margin:0.8rem 0 0.8rem 1.5rem; color:var(--text-muted); font-size:0.92rem; line-height:2.0;">
+        <li>Each first-order factor \((1 + jx)\) in the denominator contributes a \(-20\,\text{dB/decade}\) slope above its corner frequency and \(-45°\) of phase at that frequency.</li>
+        <li>Each first-order factor in the numerator contributes \(+20\,\text{dB/decade}\) above its corner frequency and \(+45°\) of phase.</li>
+        <li>Second-order factors contribute \(\pm 40\,\text{dB/decade}\).</li>
+        <li>At the corner frequency: the exact gain is \(-3\,\text{dB}\) below the asymptote intersection.</li>
+      </ul>
+
+      <!-- §2 FIRST ORDER FILTERS ═══════════════════════════════════════════════ -->
+      <h2 id="sec-first-order" data-chapter="§2 First-Order Filters">§2 — First-Order Filters</h2>
+
+      <p>All four canonical first-order filters are voltage dividers. The cutoff frequency is always \(f_c = 1/(2\pi\tau)\) where \(\tau\) is the time constant of the circuit.</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>Filter</th>
+              <th>Circuit</th>
+              <th>\(\underline{H}(\omega)\)</th>
+              <th>\(f_c\)</th>
+              <th>Slope (stopband)</th>
+              <th>\(\Delta\varphi\) at \(f_c\)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">RC low-pass</td>
+              <td class="qty-unit">R series, C output</td>
+              <td class="qty-unit">\(\dfrac{1}{1+jx}\)</td>
+              <td class="qty-unit">\(\dfrac{1}{2\pi RC}\)</td>
+              <td class="qty-note">\(-20\,\text{dB/dec}\)</td>
+              <td class="qty-note">\(-45°\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">RC high-pass</td>
+              <td class="qty-unit">C series, R output</td>
+              <td class="qty-unit">\(\dfrac{jx}{1+jx}\)</td>
+              <td class="qty-unit">\(\dfrac{1}{2\pi RC}\)</td>
+              <td class="qty-note">\(+20\,\text{dB/dec}\)</td>
+              <td class="qty-note">\(+45°\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">RL low-pass</td>
+              <td class="qty-unit">L series, R output</td>
+              <td class="qty-unit">\(\dfrac{1}{1+jx}\)</td>
+              <td class="qty-unit">\(\dfrac{R}{2\pi L}\)</td>
+              <td class="qty-note">\(-20\,\text{dB/dec}\)</td>
+              <td class="qty-note">\(-45°\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">RL high-pass</td>
+              <td class="qty-unit">R series, L output</td>
+              <td class="qty-unit">\(\dfrac{jx}{1+jx}\)</td>
+              <td class="qty-unit">\(\dfrac{R}{2\pi L}\)</td>
+              <td class="qty-note">\(+20\,\text{dB/dec}\)</td>
+              <td class="qty-note">\(+45°\)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Where \(x = \omega/\omega_c = f/f_c\) in all cases. The gain and phase for any first-order filter follow directly:</p>
+
+      <div class="eq">
+        $$G_v = \frac{1}{\sqrt{1+x^2}} \quad \text{(low-pass)} \qquad G_v = \frac{x}{\sqrt{1+x^2}} \quad \text{(high-pass)}$$
+        <div class="eq-label">first-order gain — low-pass and high-pass</div>
+      </div>
+
+      <div class="eq">
+        $$\Delta\varphi = -\arctan(x) \quad \text{(low-pass)} \qquad \Delta\varphi = \frac{\pi}{2} - \arctan(x) \quad \text{(high-pass)}$$
+        <div class="eq-label">first-order phase — low-pass and high-pass</div>
+      </div>
+
+      <h3>Derivation: RC low-pass</h3>
+      <p>Voltage divider, output across \(\underline{Z}_C\):</p>
+
+      <div class="eq">
+        $$\underline{H} = \frac{\underline{Z}_C}{\underline{Z}_R + \underline{Z}_C} = \frac{1/jC\omega}{R + 1/jC\omega} = \frac{1}{1 + jRC\omega} = \frac{1}{1+jx} \quad \text{with } x = RC\omega$$
+        <div class="eq-label">RC low-pass derivation</div>
+      </div>
+
+      <p>DC limit (\(\omega \to 0\)): \(\underline{Z}_C \to \infty\) → C is open circuit → output equals input → \(|\underline{H}| = 1\), \(g_{dB} = 0\). HF limit (\(\omega \to \infty\)): \(\underline{Z}_C \to 0\) → C is short circuit → output is shorted to ground → \(|\underline{H}| = 0\). Low-pass confirmed.</p>
+
+      <h3>Derivation: RC high-pass</h3>
+      <p>Voltage divider, output across \(\underline{Z}_R\):</p>
+
+      <div class="eq">
+        $$\underline{H} = \frac{\underline{Z}_R}{\underline{Z}_R + \underline{Z}_C} = \frac{R}{R + 1/jC\omega} = \frac{jRC\omega}{1 + jRC\omega} = \frac{jx}{1+jx}$$
+        <div class="eq-label">RC high-pass derivation</div>
+      </div>
+
+      <p>DC limit: \(\underline{Z}_C \to \infty\) → C is open circuit → no current flows → \(U_R = 0\) → \(|\underline{H}| = 0\). HF limit: \(\underline{Z}_C \to 0\) → C is short circuit → output equals input → \(|\underline{H}| = 1\). High-pass confirmed.</p>
+
+      <!-- §3 LOADING EFFECT ═════════════════════════════════════════════════════ -->
+      <h2 id="sec-loading" data-chapter="§3 Loading Effect">§3 — Loading Effect</h2>
+
+      <p>The voltage divider formula assumes no current is drawn from the output node — \(i_s = 0\) (see <a href="L1-kirchhoff.html#sec-divider">L1 §5</a>). In practice, whatever circuit follows the filter draws current, and this modifies the transfer function.</p>
+
+      <p>For the RC high-pass with a load \(R_L\) across the output, \(\underline{Z}_R\) becomes \(R \| R_L = RR_L/(R+R_L)\) and the new transfer function is:</p>
+
+      <div class="eq">
+        $$\underline{H}'(\omega) = \frac{R\|R_L}{R\|R_L + \underline{Z}_C} \qquad \Rightarrow \qquad f_c' = \frac{1}{2\pi C (R\|R_L + R)} \neq f_c$$
+        <div class="eq-label">RC high-pass with load — shifted cutoff frequency</div>
+      </div>
+
+      <p>The cutoff frequency shifts and the passband gain drops below 1. The smaller \(R_L\) is, the worse the distortion. This is the core motivation for the op-amp follower in <a href="L5-opamp.html">L5</a>: an ideal follower has infinite input impedance (draws no current) and zero output impedance (can drive any load without affecting the filter properties).</p>
+
+      <!-- §4 SECOND ORDER: CASCADE ══════════════════════════════════════════════ -->
+      <h2 id="sec-second-order" data-chapter="§4 Second-Order Filters">§4 — Second-Order Filters</h2>
+
+      <h3>Cascaded RC stages — transfer matrix method</h3>
+      <p>Two RC low-pass stages in series (TP5). Each stage has transfer matrix \(T_{RC} = \begin{pmatrix} j\omega RC + 1 & R \\ j\omega C & 1 \end{pmatrix}\). The total matrix is \(T_\text{tot} = T_{RC}^2\), and \(\underline{H} = 1/a\) where \(a\) is the top-left element:</p>
+
+      <div class="eq">
+        $$\underline{H}(\omega) = \frac{1}{1 - (\omega RC)^2 + 3j\omega RC}$$
+        <div class="eq-label">RC-RC low-pass — transfer matrix method</div>
+      </div>
+
+      <p>The cutoff frequency is found by solving \(|\underline{H}(\omega_c)| = 1/\sqrt{2}\), which gives \(\omega_c = \sqrt{0.14}\,\omega_0 \approx 0.37\,\omega_0\) with \(\omega_0 = 1/RC\). The slope in the stopband is \(-40\,\text{dB/decade}\) — double that of a first-order filter.</p>
+
+      <h3>RLC series — canonical second-order</h3>
+      <p>A series RLC circuit driven by \(u_e\). Three possible outputs; three different filter types:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Output</th><th>\(\underline{H}(\omega)\)</th><th>Filter type</th><th>Gain at \(\omega_0\)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Across R</td>
+              <td class="qty-unit">\(\dfrac{jx/Q}{1-x^2+jx/Q}\)</td>
+              <td class="qty-note">Band-pass</td>
+              <td class="qty-note">\(1\) (0 dB)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Across C</td>
+              <td class="qty-unit">\(\dfrac{1}{1-x^2+jx/Q}\)</td>
+              <td class="qty-note">Low-pass (with resonance if \(Q > 1/\sqrt{2}\))</td>
+              <td class="qty-note">\(Q\) (\(+20\log Q\) dB)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Across L</td>
+              <td class="qty-unit">\(\dfrac{-x^2}{1-x^2+jx/Q}\)</td>
+              <td class="qty-note">High-pass</td>
+              <td class="qty-note">\(Q\)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Where \(x = \omega/\omega_0\), \(\omega_0 = 1/\sqrt{LC}\), and \(Q = \omega_0 L/R = (1/R)\sqrt{L/C}\).</p>
+
+      <!-- §5 RESONANCE ══════════════════════════════════════════════════════════ -->
+      <h2 id="sec-resonance" data-chapter="§5 Resonance & Bandwidth">§5 — Resonance and Bandwidth</h2>
+
+      <h3>Resonance in intensity (band-pass)</h3>
+      <p>For the output across R, resonance always occurs at \(\omega = \omega_0\) regardless of \(Q\). The maximum gain is always 1 (0 dB). The bandwidth is:</p>
+
+      <div class="eq">
+        $$\Delta f = f_2 - f_1 = \frac{f_0}{Q} \qquad \Leftrightarrow \qquad \Delta\omega = \frac{\omega_0}{Q} = \frac{R}{L}$$
+        <div class="eq-label">RLC band-pass bandwidth</div>
+      </div>
+
+      <p>High \(Q\) → narrow bandwidth, sharp resonance. Low \(Q\) → broad, flat response. The two cutoff frequencies satisfy \(f_1 f_2 = f_0^2\) (geometric mean).</p>
+
+      <h3>Surtension across C</h3>
+      <p>For the output across C, resonance only exists if \(Q > 1/\sqrt{2} \approx 0.707\). When it does, the maximum voltage across C <em>exceeds</em> the source voltage — this is the surtension:</p>
+
+      <div class="eq">
+        $$U_{C,\text{max}} = \frac{Q}{\sqrt{1 - 1/(4Q^2)}}\, U_0 \approx Q\, U_0 \quad \text{for large } Q$$
+        <div class="eq-label">surtension — peak voltage across C exceeds source</div>
+      </div>
+
+      <div class="note">
+        Energy interpretation: at resonance, energy sloshes back and forth between the electric field in C (\(E_C = \frac{1}{2}CU_C^2\)) and the magnetic field in L (\(E_L = \frac{1}{2}LI^2\)) — exactly like a mechanical oscillator exchanging kinetic and potential energy. R is the damper. \(Q\) measures how many cycles the energy survives before being dissipated.
+      </div>
+
+      <!-- BODE WIDGET ═══════════════════════════════════════════════════════════ -->
+      <h2 id="sec-widget" data-chapter="Bode Plotter">Live Bode Plotter</h2>
+
+      <p>Select a filter type and adjust component values. The diagram updates live — use it to check your hand calculations and verify asymptote slopes.</p>
+
+      <div class="widget-wrap">
+        <canvas id="canvas-bode" class="widget-canvas" width="700" height="420"
+          role="img" aria-label="Live Bode diagram — gain and phase vs frequency"></canvas>
+        <div class="widget-controls">
+          <label>Filter</label>
+          <select id="canvas-bode-type" style="font-family:var(--font-mono);font-size:0.72rem;background:var(--bg);color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:0.2em 0.4em;cursor:pointer;">
+            <option value="rc-low">RC low-pass</option>
+            <option value="rc-high">RC high-pass</option>
+            <option value="rl-low">RL low-pass</option>
+            <option value="rl-high">RL high-pass</option>
+            <option value="rlc-band">RLC band-pass</option>
+            <option value="rlc-low">RLC low-pass</option>
+          </select>
+          <label>R</label>
+          <input type="range" id="canvas-bode-R" min="100" max="10000" step="100" value="1000">
+          <span class="out" id="canvas-bode-R-out">1kΩ</span>
+          <span id="canvas-bode-C-row" style="display:contents">
+            <label>C (µF)</label>
+            <input type="range" id="canvas-bode-C" min="0.1" max="10" step="0.1" value="1.0">
+            <span class="out" id="canvas-bode-C-out">1.0µF</span>
+          </span>
+          <span id="canvas-bode-L-row" style="display:none">
+            <label>L (mH)</label>
+            <input type="range" id="canvas-bode-L" min="10" max="500" step="10" value="100">
+            <span class="out" id="canvas-bode-L-out">100mH</span>
+          </span>
+        </div>
+        <div class="widget-caption">Blue: \(g_{dB}(f) = 20\log|\underline{H}|\). Violet: \(\Delta\varphi(f) = \arg(\underline{H})\). Amber dashed line: \(-3\,\text{dB}\) level. Amber dot: cutoff frequency. Grey dashed lines: asymptotes.</div>
+      </div>
+
+      <!-- §6 IDENTIFICATION CHECKLIST ══════════════════════════════════════════ -->
+      <h2 id="sec-checklist" data-chapter="§6 Identification Checklist">§6 — Filter Identification Checklist</h2>
+
+      <p>A systematic procedure for any filter problem in the exam:</p>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>Step</th><th>Action</th><th>What you learn</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">1 — DC limit</td>
+              <td class="qty-note">Replace C → open circuit, L → short circuit. Read \(U_s/U_e\).</td>
+              <td class="qty-note">Output at \(f = 0\). Zero → high-pass or band-pass. \(U_e\) → low-pass or band-pass.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">2 — HF limit</td>
+              <td class="qty-note">Replace C → short circuit, L → open circuit. Read \(U_s/U_e\).</td>
+              <td class="qty-note">Output at \(f \to \infty\). Zero → low-pass or band-pass. \(U_e\) → high-pass.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">3 — Identify type</td>
+              <td class="qty-note">DC=1, HF=0 → low-pass. DC=0, HF=1 → high-pass. DC=0, HF=0 → band-pass.</td>
+              <td class="qty-note">Filter type confirmed.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">4 — Write \(\underline{H}\)</td>
+              <td class="qty-note">Apply voltage divider with complex \(\underline{Z}\). Simplify.</td>
+              <td class="qty-note">Exact transfer function.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">5 — Factor</td>
+              <td class="qty-note">Write as \(H_\text{max} \cdot f(x)\) with \(x = \omega/\omega_0\). Read \(\omega_0\), \(Q\).</td>
+              <td class="qty-note">\(f_c\) or \(f_0\), \(Q\), maximum gain.</td>
+            </tr>
+            <tr>
+              <td class="qty-name">6 — Sketch</td>
+              <td class="qty-note">Draw asymptotes. Mark \(f_c\). Note \(-3\,\text{dB}\) at corner. Add phase.</td>
+              <td class="qty-note">Bode diagram complete.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- LINKS FORWARD ════════════════════════════════════════════════════════ -->
+      <h2 id="sec-links" data-chapter="→ Links forward">What comes next</h2>
+
+      <div style="overflow-x:auto; margin:1.5rem 0;">
+        <table class="qty-table">
+          <thead><tr><th>This page establishes</th><th>Used in</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="qty-name">Loading effect shifts \(f_c\) when \(i_s \neq 0\)</td>
+              <td class="qty-name"><a href="L5-opamp.html">L5</a> — follower and active filters solve this</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Gain \(> 1\) impossible for passive filters</td>
+              <td class="qty-name"><a href="L5-opamp.html">L5</a> — active filters with op-amp can have \(G_v > 1\)</td>
+            </tr>
+            <tr>
+              <td class="qty-name">RLC resonance, \(Q\), surtension</td>
+              <td class="qty-name">EM exam — forced harmonic oscillator, same canonical form</td>
+            </tr>
+            <tr>
+              <td class="qty-name">Bode diagram — slope \(-20n\,\text{dB/dec}\) for order \(n\)</td>
+              <td class="qty-name">TP3–6 — experimental characterisation of all filters</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
 
