@@ -29,32 +29,129 @@
       <div class="page-header">
         <div class="layer-badge" style="color:var(--exp)">EXP</div>
         <h1>RLC Resonance</h1>
-        <p class="subtitle">Bode diagram of the RLC series circuit. Determine \(\omega_0\), \(Q\), bandwidth \(\Delta f\), and observe surtension.</p>
+        <p class="subtitle">Bode diagram of the RLC series band-pass filter. Determine \(\omega_0\), quality factor \(Q\), bandwidth \(\Delta f\), and compare high-\(Q\) vs low-\(Q\) behaviour.</p>
       </div>
 
       <div class="theory-bar">
         <span class="bar-label">Theory</span>
-        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-second-order">L4 · RLC</a>
-        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-resonance">L4 · Resonance</a>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-resonance">L4 · Resonance &amp; Q</a>
+        <a class="theory-pill" style="color:var(--layer-4)" href="../layers/L4-filters.html#sec-second-order">L4 · RLC filters</a>
         <a class="theory-pill" style="color:var(--layer-2)" href="../layers/L2-components.html#sec-inductor">L2 · Inductor</a>
+        <a class="theory-pill" style="color:var(--layer-2)" href="../layers/L2-components.html#sec-capacitor">L2 · Capacitor</a>
       </div>
 
-      
-      <h2 id="sec-config" data-chapter="Configuration">Configuration</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <!-- ── Theory recap ─────────────────────────────────────────────────── -->
+      <h2 id="sec-theory" data-chapter="Theory">Theory Recap</h2>
 
-      <h2 id="sec-data" data-chapter="Measurement Data">Measurement Data</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <p>RLC series circuit, output taken across \(R\) — band-pass filter:</p>
 
-      <h2 id="sec-plot" data-chapter="Bode Plot">Bode Plot</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="eq">
+        $$\underline{H}(\omega) = \frac{jx/Q}{1 - x^2 + jx/Q} \qquad x = \frac{\omega}{\omega_0} \qquad \omega_0 = \frac{1}{\sqrt{LC}} \qquad Q = \frac{\omega_0 L}{R} = \frac{1}{R}\sqrt{\frac{L}{C}}$$
+        <div class="eq-label">RLC band-pass transfer function</div>
+      </div>
 
-      <h2 id="sec-fc" data-chapter="f₀ & Q">f₀ & Q</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <p>At resonance \(\omega = \omega_0\) (\(x = 1\)): \(|\underline{H}| = 1\) (0 dB) — the reactive components cancel. The bandwidth is:</p>
 
-      <h2 id="sec-conclusions" data-chapter="Conclusions">Conclusions</h2>
-      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem">[ content pending ]</p>
+      <div class="eq">
+        $$\Delta f = f_2 - f_1 = \frac{f_0}{Q} = \frac{R}{2\pi L} \qquad f_1 f_2 = f_0^2$$
+        <div class="eq-label">bandwidth — high Q gives narrow resonance</div>
+      </div>
 
+      <!-- ── Component config ──────────────────────────────────────────────── -->
+      <h2 id="sec-config" data-chapter="Configuration">Component Configuration</h2>
+
+      <div style="display:flex;flex-wrap:wrap;gap:1.5rem;margin:1rem 0 1.5rem;">
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">L (mH)</label><br>
+          <input type="number" id="param-L" value="100" min="0.1" step="1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+        <div>
+          <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">C (µF)</label><br>
+          <input type="number" id="param-C" value="1.0" min="0.001" step="0.1"
+            style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+        </div>
+      </div>
+
+      <div id="theory-display" class="note" style="margin-bottom:1.5rem;"></div>
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- SLOT 1 — R = 100 Ω                                               -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-r100" data-chapter="R = 100 Ω">Measurement — \(R = 100\,\Omega\) (high \(Q\))</h2>
+
+      <div style="margin-bottom:0.5rem;">
+        <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
+        <input type="number" id="param-R1" value="100" min="1"
+          style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+      </div>
+
+      <div class="slot-bar" id="slot-bar-r1"></div>
+
+      <div class="tool-toolbar">
+        <label style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          <input type="checkbox" id="show-uncert-r1" checked style="margin-right:0.3rem;">
+          Show uncertainty columns
+        </label>
+        <button class="tool-btn primary" id="btn-save-r1">💾 Save</button>
+        <button class="tool-btn" id="btn-export-r1">↓ CSV</button>
+        <label class="tool-btn" style="cursor:pointer">↑ Import CSV
+          <input type="file" accept=".csv" style="display:none" id="btn-import-r1">
+        </label>
+        <button class="tool-btn" id="btn-clear-r1">Clear</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tbl-r1"></table>
+      </div>
+
+      <canvas id="canvas-r1" class="widget-canvas" width="700" height="500"
+        style="margin-top:1.5rem;"
+        role="img" aria-label="Bode plot — RLC R=100Ω"></canvas>
+      <div class="widget-caption">RLC band-pass, \(R = 100\,\Omega\). High \(Q\) — narrow sharp resonance peak.</div>
+
+      <h2 id="sec-q-r1" data-chapter="Q — R = 100 Ω">\(Q\) and Bandwidth — \(R = 100\,\Omega\)</h2>
+      <div id="fc-finder-r1"></div>
+      <div id="conclusions-r1" class="note" style="margin-top:1rem;line-height:2.0;"></div>
+
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <!-- SLOT 2 — R = 1000 Ω                                              -->
+      <!-- ══════════════════════════════════════════════════════════════════ -->
+      <h2 id="sec-r1000" data-chapter="R = 1000 Ω">Measurement — \(R = 1000\,\Omega\) (low \(Q\))</h2>
+
+      <div style="margin-bottom:0.5rem;">
+        <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
+        <input type="number" id="param-R2" value="1000" min="1"
+          style="margin-top:0.3rem;width:90px;font-family:var(--font-mono);font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--border-hi);border-radius:4px;padding:0.3em 0.5em;">
+      </div>
+
+      <div class="slot-bar" id="slot-bar-r2"></div>
+
+      <div class="tool-toolbar">
+        <label style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim)">
+          <input type="checkbox" id="show-uncert-r2" checked style="margin-right:0.3rem;">
+          Show uncertainty columns
+        </label>
+        <button class="tool-btn primary" id="btn-save-r2">💾 Save</button>
+        <button class="tool-btn" id="btn-export-r2">↓ CSV</button>
+        <label class="tool-btn" style="cursor:pointer">↑ Import CSV
+          <input type="file" accept=".csv" style="display:none" id="btn-import-r2">
+        </label>
+        <button class="tool-btn" id="btn-clear-r2">Clear</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tbl-r2"></table>
+      </div>
+
+      <canvas id="canvas-r2" class="widget-canvas" width="700" height="500"
+        style="margin-top:1.5rem;"
+        role="img" aria-label="Bode plot — RLC R=1000Ω"></canvas>
+      <div class="widget-caption">RLC band-pass, \(R = 1000\,\Omega\). Low \(Q\) — broad flat response.</div>
+
+      <h2 id="sec-q-r2" data-chapter="Q — R = 1000 Ω">\(Q\) and Bandwidth — \(R = 1000\,\Omega\)</h2>
+      <div id="fc-finder-r2"></div>
+      <div id="conclusions-r2" class="note" style="margin-top:1rem;line-height:2.0;"></div>
 
       <div class="page-nav">
         <a href="cascaded-filters.html">← Cascaded Filters</a>
@@ -63,5 +160,198 @@
 
     </div>
   </main>
+
+  <script>
+  window.addEventListener('load', function () {
+
+    // ── Slot managers ─────────────────────────────────────────────────────────
+    const sm1 = SlotManager.create('rlc-r100');
+    sm1.renderBar('slot-bar-r1', { hideCSV: true });
+
+    const sm2 = SlotManager.create('rlc-r1000');
+    sm2.renderBar('slot-bar-r2', { hideCSV: true });
+
+    // ── Bode tables ───────────────────────────────────────────────────────────
+    const bt1 = BodeTable.create({ tableId: 'tbl-r1', canvasId: 'canvas-r1', showUncert: true });
+    const bt2 = BodeTable.create({ tableId: 'tbl-r2', canvasId: 'canvas-r2', showUncert: true });
+
+    // ── Slot load callbacks ───────────────────────────────────────────────────
+    sm1.onLoad(function (rows, components) {
+      bt1.setRows(rows);
+      if (components.R) document.getElementById('param-R1').value = components.R;
+      if (components.L) document.getElementById('param-L').value = components.L * 1e3;
+      if (components.C) document.getElementById('param-C').value = components.C * 1e6;
+      updateTheory();
+    });
+
+    sm2.onLoad(function (rows, components) {
+      bt2.setRows(rows);
+      if (components.R) document.getElementById('param-R2').value = components.R;
+      updateTheory();
+    });
+
+    // ── f_c finders (both sides — band-pass) ──────────────────────────────────
+    const finder1 = FcFinder.init('fc-finder-r1', bt1, { nPoints: 4, searchMode: 'both' });
+    const finder2 = FcFinder.init('fc-finder-r2', bt2, { nPoints: 4, searchMode: 'both' });
+
+    // Fire initial loads after everything wired
+    sm1.load();
+    sm2.load();
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function getL()  { return (parseFloat(document.getElementById('param-L').value)  || 100) * 1e-3; }
+    function getC()  { return (parseFloat(document.getElementById('param-C').value)  || 1)   * 1e-6; }
+    function getR1() { return parseFloat(document.getElementById('param-R1').value)  || 100; }
+    function getR2() { return parseFloat(document.getElementById('param-R2').value)  || 1000; }
+
+    function fmtFreq(f) {
+      if (!f) return '—';
+      return f >= 1000 ? (f/1000).toFixed(3) + ' kHz' : f.toFixed(1) + ' Hz';
+    }
+
+    function theoryQ(R) {
+      const L = getL(), C = getC();
+      const omega0 = 1 / Math.sqrt(L * C);
+      return omega0 * L / R;
+    }
+
+    function theoryF0() {
+      return 1 / (2 * Math.PI * Math.sqrt(getL() * getC()));
+    }
+
+    function updateTheory() {
+      const f0 = theoryF0();
+      const Q1 = theoryQ(getR1()), Q2 = theoryQ(getR2());
+      const bw1 = f0 / Q1, bw2 = f0 / Q2;
+
+      document.getElementById('theory-display').innerHTML =
+        `\\(f_0 = 1/(2\\pi\\sqrt{LC}) = ${fmtFreq(f0)}\\) &nbsp;·&nbsp; `
+        + `\\(R=${getR1()}\\,\\Omega\\): \\(Q = ${Q1.toFixed(2)}\\), \\(\\Delta f = ${fmtFreq(bw1)}\\) &nbsp;·&nbsp; `
+        + `\\(R=${getR2()}\\,\\Omega\\): \\(Q = ${Q2.toFixed(2)}\\), \\(\\Delta f = ${fmtFreq(bw2)}\\)`;
+
+      if (finder1) finder1.setTheory(f0, 'f₀ theory');
+      if (finder2) finder2.setTheory(f0, 'f₀ theory');
+
+      if (window.renderMathInElement)
+        renderMathInElement(document.getElementById('theory-display'));
+
+      updateConclusions(bt1, getR1(), 'conclusions-r1');
+      updateConclusions(bt2, getR2(), 'conclusions-r2');
+    }
+
+    // ── Conclusions ───────────────────────────────────────────────────────────
+    function updateConclusions(bt, R, boxId) {
+      const box = document.getElementById(boxId);
+      const rows = bt.getRows();
+      if (rows.filter(r => r.f && r.ue && r.us).length < 3) {
+        box.textContent = 'Enter at least 3 measurement points to generate conclusions.';
+        return;
+      }
+
+      const f0_th  = theoryF0();
+      const Q_th   = theoryQ(R);
+      const bw_th  = f0_th / Q_th;
+      const result = FcFinder.computeFc(rows, 4, 'both');
+
+      let html = '';
+
+      // Resonant frequency from phase = 0 (or from peak)
+      const validRows = rows.filter(r => r.f && r.ue && r.us && r.f > 0)
+                            .sort((a,b) => a.f - b.f);
+      const gVals = validRows.map(r => 20*Math.log10(Math.abs(r.us/r.ue)));
+      const iMax = gVals.indexOf(Math.max(...gVals));
+      const f0_meas = validRows[iMax] ? validRows[iMax].f : null;
+
+      if (f0_meas) {
+        const err_f0 = Math.abs(f0_meas - f0_th) / f0_th * 100;
+        html += `Resonant frequency: measured \\(f_0 \\approx ${fmtFreq(f0_meas)}\\) vs theoretical \\(${fmtFreq(f0_th)}\\) — error: <strong>${err_f0.toFixed(1)}%</strong>.<br>`;
+      }
+
+      // Gain at resonance
+      html += `Gain at resonance: \\(g_{dB} \\approx ${gVals[iMax] !== undefined ? gVals[iMax].toFixed(1) : '—'}\\,\\text{dB}\\) (expected 0 dB for ideal RLC band-pass).<br>`;
+
+      // Q from bandwidth
+      if (result.fc_low && result.fc_high) {
+        const bw_meas = result.fc_high - result.fc_low;
+        const Q_meas  = f0_meas ? f0_meas / bw_meas : null;
+        const err_Q   = Q_meas ? Math.abs(Q_meas - Q_th) / Q_th * 100 : null;
+
+        html += `Bandwidth: \\(\\Delta f = f_2 - f_1 = ${fmtFreq(result.fc_high)} - ${fmtFreq(result.fc_low)} = ${fmtFreq(bw_meas)}\\)`;
+        html += ` (theoretical: \\(${fmtFreq(bw_th)}\\)).<br>`;
+
+        if (Q_meas) {
+          html += `\\(Q_{\\text{meas}} = f_0/\\Delta f \\approx ${Q_meas.toFixed(2)}\\) vs \\(Q_{\\text{theory}} = \\omega_0 L/R = ${Q_th.toFixed(2)}\\)`;
+          if (err_Q !== null) html += ` — error: <strong>${err_Q.toFixed(1)}%</strong>`;
+          html += '.<br>';
+        }
+
+        // Geometric mean check: f1·f2 ≈ f0²
+        const geom = Math.sqrt(result.fc_low * result.fc_high);
+        html += `Check \\(\\sqrt{f_1 f_2} = ${fmtFreq(geom)}\\) `;
+        html += f0_meas ? `vs \\(f_0 = ${fmtFreq(f0_meas)}\\) — ` : '— ';
+        const geomErr = f0_meas ? Math.abs(geom - f0_meas)/f0_meas*100 : null;
+        html += geomErr !== null ? `error: <strong>${geomErr.toFixed(1)}%</strong>. ` : '';
+        html += `(Theory: \\(f_1 f_2 = f_0^2\\).)`;
+      } else {
+        html += `Could not find both cutoff frequencies. Add measurements further from resonance to capture the full bandwidth.`;
+      }
+
+      box.innerHTML = html;
+      if (window.renderMathInElement) renderMathInElement(box);
+    }
+
+    // ── Wire controls ─────────────────────────────────────────────────────────
+    ['param-L','param-C','param-R1','param-R2'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateTheory);
+    });
+
+    document.getElementById('show-uncert-r1').addEventListener('change', function () {
+      bt1.setShowUncert(this.checked);
+    });
+    document.getElementById('show-uncert-r2').addEventListener('change', function () {
+      bt2.setShowUncert(this.checked);
+    });
+
+    function wireSlot(sm, bt, getRFn, saveBtn, exportBtn, importInput, clearBtn, filename, concId) {
+      document.getElementById(saveBtn).addEventListener('click', () => {
+        sm.save(bt.getRows(), { R: getRFn(), L: getL(), C: getC() });
+      });
+      document.getElementById(exportBtn).addEventListener('click', () => {
+        const csv = sm.rowsToCsv(bt.getRows());
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+      });
+      document.getElementById(importInput).addEventListener('change', function () {
+        const file = this.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const rows = sm.csvToRows(e.target.result);
+            if (!rows.length) throw new Error('No valid rows found');
+            bt.setRows(rows);
+            sm.save(rows, { R: getRFn(), L: getL(), C: getC() });
+            updateTheory();
+          } catch (err) { alert('Import failed: ' + err.message); }
+        };
+        reader.readAsText(file);
+        this.value = '';
+      });
+      document.getElementById(clearBtn).addEventListener('click', () => {
+        if (confirm('Clear all rows?')) bt.setRows([]);
+      });
+      bt.onchange(() => updateConclusions(bt, getRFn(), concId));
+    }
+
+    wireSlot(sm1, bt1, getR1, 'btn-save-r1', 'btn-export-r1', 'btn-import-r1', 'btn-clear-r1',
+             'rlc-r100.csv', 'conclusions-r1');
+    wireSlot(sm2, bt2, getR2, 'btn-save-r2', 'btn-export-r2', 'btn-import-r2', 'btn-clear-r2',
+             'rlc-r1000.csv', 'conclusions-r2');
+
+    updateTheory();
+  });
+  </script>
 </body>
 </html>
