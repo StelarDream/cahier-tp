@@ -200,7 +200,14 @@ const BodeTable = (function () {
     function drawPlot() {
       if (!canvasEl) return;
       const ctx = canvasEl.getContext('2d');
-      const W = canvasEl.width, H = canvasEl.height;
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvasEl.clientWidth || canvasEl.width;
+      const H = canvasEl.clientHeight || canvasEl.height;
+      if (canvasEl.width !== W * dpr || canvasEl.height !== H * dpr) {
+        canvasEl.width = W * dpr; canvasEl.height = H * dpr;
+        canvasEl.style.width = W + 'px'; canvasEl.style.height = H + 'px';
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
 
       const accent   = getCSSVar('--accent')     || '#c8a96e';

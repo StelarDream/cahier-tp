@@ -17,6 +17,11 @@ const PhasorWidget = (function () {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.width, cssH = canvas.height;
+    canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+    ctx.scale(dpr, dpr);
 
     // Options with defaults
     let omega = (opts && opts.omega) || 1.0;   // rad/s (normalised, visual only)
@@ -72,8 +77,8 @@ const PhasorWidget = (function () {
     }
 
     function draw() {
-      const W = canvas.width;
-      const H = canvas.height;
+      const W = canvas.width / dpr;
+      const H = canvas.height / dpr;
       ctx.clearRect(0, 0, W, H);
 
       const accent  = getCSSVar('--accent')      || '#c8a96e';
