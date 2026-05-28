@@ -110,7 +110,7 @@
         role="img" aria-label="Bode plot — RLC R=100Ω"></canvas>
       <div class="widget-caption">RLC band-pass, \(R = 100\,\Omega\). High \(Q\) — narrow sharp resonance peak.</div>
 
-      <h2 id="sec-q-r1" data-chapter="Q — R = 100 Ω">\(Q\) and Bandwidth — \(R = 100\,\Omega\)</h2>
+      <h2 id="sec-q-r1" data-chapter="Q — high Q"><span id="heading-q1">\(Q\) and Bandwidth — \(R = 100\,\Omega\)</span></h2>
       <div id="fc-finder-r1"></div>
       <div id="conclusions-r1" class="note" style="margin-top:1rem;line-height:2.0;"></div>
 
@@ -149,7 +149,7 @@
         role="img" aria-label="Bode plot — RLC R=1000Ω"></canvas>
       <div class="widget-caption">RLC band-pass, \(R = 1000\,\Omega\). Low \(Q\) — broad flat response.</div>
 
-      <h2 id="sec-q-r2" data-chapter="Q — R = 1000 Ω">\(Q\) and Bandwidth — \(R = 1000\,\Omega\)</h2>
+      <h2 id="sec-q-r2" data-chapter="Q — low Q"><span id="heading-q2">\(Q\) and Bandwidth — \(R = 1000\,\Omega\)</span></h2>
       <div id="fc-finder-r2"></div>
       <div id="conclusions-r2" class="note" style="margin-top:1rem;line-height:2.0;"></div>
 
@@ -304,10 +304,12 @@
     ['param-L','param-C','param-R1','param-R2'].forEach(id => {
       document.getElementById(id).addEventListener('input', function () {
         // Update section headings to reflect current R values
-        document.getElementById('heading-r1').textContent =
-          'Measurement — R = ' + (document.getElementById('param-R1').value || '100') + ' Ω (high Q)';
-        document.getElementById('heading-r2').textContent =
-          'Measurement — R = ' + (document.getElementById('param-R2').value || '1000') + ' Ω (low Q)';
+        const r1 = document.getElementById('param-R1').value || '100';
+        const r2 = document.getElementById('param-R2').value || '1000';
+        document.getElementById('heading-r1').textContent = 'Measurement — R = ' + r1 + ' Ω (high Q)';
+        document.getElementById('heading-r2').textContent = 'Measurement — R = ' + r2 + ' Ω (low Q)';
+        document.getElementById('heading-q1').textContent = 'Q and Bandwidth — R = ' + r1 + ' Ω';
+        document.getElementById('heading-q2').textContent = 'Q and Bandwidth — R = ' + r2 + ' Ω';
         updateTheory();
       });
     });
