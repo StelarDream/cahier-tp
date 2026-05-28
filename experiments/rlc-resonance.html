@@ -78,7 +78,7 @@
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <!-- SLOT 1 — R = 100 Ω                                               -->
       <!-- ══════════════════════════════════════════════════════════════════ -->
-      <h2 id="sec-r100" data-chapter="R = 100 Ω">Measurement — \(R = 100\,\Omega\) (high \(Q\))</h2>
+      <h2 id="sec-r100" data-chapter="High Q measurement"><span id="heading-r1">Measurement — \(R = 100\,\Omega\) (high \(Q\))</span></h2>
 
       <div style="margin-bottom:0.5rem;">
         <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
@@ -117,7 +117,7 @@
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <!-- SLOT 2 — R = 1000 Ω                                              -->
       <!-- ══════════════════════════════════════════════════════════════════ -->
-      <h2 id="sec-r1000" data-chapter="R = 1000 Ω">Measurement — \(R = 1000\,\Omega\) (low \(Q\))</h2>
+      <h2 id="sec-r1000" data-chapter="Low Q measurement"><span id="heading-r2">Measurement — \(R = 1000\,\Omega\) (low \(Q\))</span></h2>
 
       <div style="margin-bottom:0.5rem;">
         <label style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">R (Ω)</label><br>
@@ -302,7 +302,14 @@
 
     // ── Wire controls ─────────────────────────────────────────────────────────
     ['param-L','param-C','param-R1','param-R2'].forEach(id => {
-      document.getElementById(id).addEventListener('input', updateTheory);
+      document.getElementById(id).addEventListener('input', function () {
+        // Update section headings to reflect current R values
+        document.getElementById('heading-r1').textContent =
+          'Measurement — R = ' + (document.getElementById('param-R1').value || '100') + ' Ω (high Q)';
+        document.getElementById('heading-r2').textContent =
+          'Measurement — R = ' + (document.getElementById('param-R2').value || '1000') + ' Ω (low Q)';
+        updateTheory();
+      });
     });
 
     document.getElementById('show-uncert-r1').addEventListener('change', function () {
